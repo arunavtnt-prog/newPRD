@@ -87,6 +87,12 @@ model Project {
   websiteConfig  WebsiteConfig?
   websitePages   WebsitePage[]
   copySnippets   CopySnippet[]
+  campaigns      Campaign[]
+  contentPosts   ContentPost[]
+  adCreatives    AdCreative[]
+  launchTasks    LaunchTask[]
+  influencers    Influencer[]
+  ugcSubmissions UGCSubmission[]
   assetGenerationJobs AssetGeneration[]
 
   createdAt DateTime @default(now())
@@ -212,6 +218,10 @@ enum FileFolder {
   QC_PHOTOS
   PO_DOCUMENTS
   SHIPPING_DOCS
+  CONTENT_ASSETS
+  AD_CREATIVES
+  INFLUENCER_CONTENT
+  UGC_SUBMISSIONS
 }
 
 model FileVersion {
@@ -760,6 +770,32 @@ enum ActivityType {
   QC_CHECKPOINT_UPDATED
   QC_PASSED
   QC_FAILED
+  WEBSITE_CONFIG_UPDATED
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
+  SECTION_CREATED
+  COPY_CREATED
+  COPY_APPROVED
+  COPY_GENERATED
+  COPY_DELETED
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  CAMPAIGN_STARTED
+  CAMPAIGN_COMPLETED
+  CONTENT_POST_CREATED
+  CONTENT_POST_SCHEDULED
+  CONTENT_POST_PUBLISHED
+  AD_CREATIVE_CREATED
+  AD_CREATIVE_UPDATED
+  AD_CREATIVE_LAUNCHED
+  LAUNCH_TASK_CREATED
+  LAUNCH_TASK_COMPLETED
+  INFLUENCER_ADDED
+  INFLUENCER_CONTRACTED
+  INFLUENCER_POSTED
+  UGC_SUBMITTED
+  UGC_APPROVED
 }
 
 // ========================================
@@ -1051,4 +1087,358 @@ enum CopyPurpose {
   AD_BODY
   META_DESCRIPTION
   CUSTOM
+}
+
+// ========================================
+// MARKETING & LAUNCH (M8 Phase)
+// ========================================
+
+// Marketing campaign tracking
+model Campaign {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  campaignName  String
+  campaignType  CampaignType
+  objective     String?
+  budget        Decimal?
+  startDate     DateTime?
+  endDate       DateTime?
+
+  status        CampaignStatus @default(PLANNING)
+
+  // Metrics
+  impressions   Int?
+  clicks        Int?
+  conversions   Int?
+  spend         Decimal?
+  notes         String?
+
+  contentPosts  ContentPost[]
+  adCreatives   AdCreative[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CampaignType {
+  PRODUCT_LAUNCH
+  BRAND_AWARENESS
+  LEAD_GENERATION
+  SALES_PROMOTION
+  ENGAGEMENT
+  RETARGETING
+}
+
+enum CampaignStatus {
+  PLANNING
+  READY
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// Content calendar for social media and marketing
+model ContentPost {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  postTitle       String
+  postContent     String
+  platform        SocialPlatform
+  postType        ContentType
+
+  scheduledDate   DateTime?
+  publishedDate   DateTime?
+
+  status          PostStatus @default(DRAFT)
+
+  // Media & Assets
+  mediaUrls       String? // JSON array
+  assetIds        String? // JSON array of related asset IDs
+
+  // Engagement metrics
+  likes           Int?
+  comments        Int?
+  shares          Int?
+  views           Int?
+
+  // Hashtags & Tags
+  hashtags        String?
+  taggedAccounts  String?
+
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  TWITTER
+  LINKEDIN
+  PINTEREST
+  YOUTUBE
+  SNAPCHAT
+}
+
+enum ContentType {
+  PHOTO
+  VIDEO
+  CAROUSEL
+  STORY
+  REEL
+  THREAD
+  LIVE
+  ARTICLE
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  ARCHIVED
+}
+
+// Ad creative management and A/B testing
+model AdCreative {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  adName         String
+  adFormat       AdFormat
+  platform       AdPlatform
+
+  // Creative content
+  headline       String?
+  primaryText    String?
+  description    String?
+  callToAction   String?
+
+  // Media
+  imageUrl       String?
+  videoUrl       String?
+
+  // A/B Testing
+  variant        String? // e.g., "A", "B", "Control"
+  testGroup      String?
+
+  // Performance
+  impressions    Int?
+  clicks         Int?
+  conversions    Int?
+  spend          Decimal?
+  ctr            Decimal? // Click-through rate
+  cpc            Decimal? // Cost per click
+  cpa            Decimal? // Cost per acquisition
+
+  status         AdStatus @default(DRAFT)
+
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AdFormat {
+  SINGLE_IMAGE
+  CAROUSEL
+  VIDEO
+  COLLECTION
+  STORIES
+  REELS
+  SHOPPING
+}
+
+enum AdPlatform {
+  FACEBOOK_ADS
+  INSTAGRAM_ADS
+  GOOGLE_ADS
+  TIKTOK_ADS
+  PINTEREST_ADS
+  LINKEDIN_ADS
+  SNAPCHAT_ADS
+  TWITTER_ADS
+}
+
+enum AdStatus {
+  DRAFT
+  REVIEW
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+// Launch checklist and task management
+model LaunchTask {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  taskName      String
+  description   String?
+  category      LaunchCategory
+  priority      TaskPriority @default(MEDIUM)
+
+  assignedTo    String? // User ID
+  dueDate       DateTime?
+  completedDate DateTime?
+
+  status        TaskStatus @default(PENDING)
+
+  // Dependencies
+  dependsOn     String? // JSON array of task IDs
+  blockedBy     String?
+
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum LaunchCategory {
+  WEBSITE
+  INVENTORY
+  MARKETING
+  LEGAL
+  LOGISTICS
+  CUSTOMER_SERVICE
+  PAYMENT_SETUP
+  ANALYTICS
+  OTHER
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+  CANCELLED
+}
+
+// Influencer and partnership tracking
+model Influencer {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name            String
+  platform        SocialPlatform
+  handle          String
+  email           String?
+  phone           String?
+
+  // Metrics
+  followerCount   Int?
+  engagementRate  Decimal?
+  niche           String?
+
+  // Partnership
+  status          InfluencerStatus @default(PROSPECTING)
+  partnershipType PartnershipType?
+
+  // Compensation
+  rate            Decimal?
+  currency        String? @default("USD")
+  deliverables    String? // JSON
+
+  // Contract & Dates
+  contractDate    DateTime?
+  postDate        DateTime?
+  trackingLink    String?
+
+  // Performance
+  impressions     Int?
+  clicks          Int?
+  conversions     Int?
+
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum InfluencerStatus {
+  PROSPECTING
+  CONTACTED
+  NEGOTIATING
+  CONTRACTED
+  CONTENT_PENDING
+  POSTED
+  COMPLETED
+  DECLINED
+}
+
+enum PartnershipType {
+  GIFTED_PRODUCT
+  PAID_POST
+  AFFILIATE
+  BRAND_AMBASSADOR
+  EVENT_COLLABORATION
+}
+
+// User-generated content submissions
+model UGCSubmission {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  submitterName  String
+  submitterEmail String?
+  submitterHandle String?
+  platform       SocialPlatform?
+
+  contentType    ContentType
+  contentUrl     String
+  caption        String?
+
+  // Rights & Usage
+  rightsGranted  Boolean @default(false)
+  usageApproved  Boolean @default(false)
+
+  // Engagement
+  likes          Int?
+  comments       Int?
+  shares         Int?
+
+  status         UGCStatus @default(SUBMITTED)
+
+  // Compensation
+  compensationType String? // Gift, payment, etc.
+  compensationAmount Decimal?
+
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UGCStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  FEATURED
+  REJECTED
+  ARCHIVED
 }

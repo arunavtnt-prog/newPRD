@@ -122,6 +122,30 @@ export default async function ProjectDetailPage({
       copySnippets: {
         orderBy: [{ purpose: "asc" }, { createdAt: "desc" }],
       },
+      campaigns: {
+        orderBy: { createdAt: "desc" },
+      },
+      contentPosts: {
+        include: {
+          campaign: true,
+        },
+        orderBy: { scheduledDate: "desc" },
+      },
+      adCreatives: {
+        include: {
+          campaign: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      launchTasks: {
+        orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
+      },
+      influencers: {
+        orderBy: { createdAt: "desc" },
+      },
+      ugcSubmissions: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
