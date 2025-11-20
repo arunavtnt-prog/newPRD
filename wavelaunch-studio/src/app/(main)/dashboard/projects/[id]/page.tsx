@@ -82,6 +82,9 @@ export default async function ProjectDetailPage({
         take: 10,
       },
       discovery: true,
+      colorPalettes: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
