@@ -82,6 +82,8 @@ model Project {
   typography    Typography?
   taglines      Tagline[]
   productSKUs   ProductSKU[]
+  vendors       Vendor[]
+  purchaseOrders PurchaseOrder[]
   assetGenerationJobs AssetGeneration[]
 
   createdAt DateTime @default(now())
@@ -204,6 +206,9 @@ enum FileFolder {
   PROTOTYPE_PHOTOS
   PRODUCT_SPECS
   TECH_PACKS
+  QC_PHOTOS
+  PO_DOCUMENTS
+  SHIPPING_DOCS
 }
 
 model FileVersion {
@@ -396,7 +401,8 @@ model ProductSKU {
   status ProductStatus @default(PLANNING)
 
   // Relations
-  prototypes Prototype[]
+  prototypes  Prototype[]
+  poLineItems POLineItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -451,6 +457,156 @@ enum PrototypeStatus {
   UNDER_REVIEW
   APPROVED
   REJECTED
+}
+
+// ========================================
+// MANUFACTURING & PRODUCTION
+// ========================================
+
+model Vendor {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  name            String
+  contactPerson   String?
+  email           String?
+  phone           String?
+  address         String?
+  country         String?
+
+  // Capabilities
+  specialties     String? // JSON array
+  moqRange        String? // "100-500 units"
+  leadTimeRange   String? // "30-45 days"
+
+  // Performance
+  rating          Decimal? // 1-5 stars
+  notes           String?
+
+  // Relations
+  purchaseOrders PurchaseOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PurchaseOrder {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor  @relation(fields: [vendorId], references: [id])
+
+  // Order Info
+  poNumber          String  @unique
+  orderDate         DateTime
+  expectedShipDate  DateTime?
+  actualShipDate    DateTime?
+  expectedDelivery  DateTime?
+  actualDelivery    DateTime?
+
+  // Financials
+  subtotal      Decimal
+  shipping      Decimal?
+  tax           Decimal?
+  totalAmount   Decimal
+
+  // Status
+  status        POStatus      @default(DRAFT)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentTerms  String? // "Net 30", "50% deposit"
+
+  // Tracking
+  trackingNumber String?
+  shippingCarrier String?
+
+  // Notes
+  notes String?
+
+  // Relations
+  lineItems     POLineItem[]
+  qcCheckpoints QCCheckpoint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum POStatus {
+  DRAFT
+  SENT
+  CONFIRMED
+  IN_PRODUCTION
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  DEPOSIT_PAID
+  FULLY_PAID
+  REFUNDED
+}
+
+model POLineItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  productSKUId String?
+  productSKU   ProductSKU? @relation(fields: [productSKUId], references: [id])
+
+  // Item Details
+  description String
+  quantity    Int
+  unitPrice   Decimal
+  totalPrice  Decimal
+
+  // Specs
+  specifications String? // JSON with size, color, etc.
+
+  createdAt DateTime @default(now())
+}
+
+model QCCheckpoint {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  // Checkpoint Info
+  checkpointName String // "Pre-Production", "Mid-Production", "Final Inspection"
+  status         QCStatus @default(PENDING)
+
+  // Inspection
+  inspectionDate DateTime?
+  inspectedBy    String? // User name or external inspector
+
+  // Results
+  passed         Boolean?
+  defectRate     Decimal? // Percentage
+  sampleSize     Int?
+
+  // Issues
+  issues         String? // JSON array of issues found
+  correctionsPlan String?
+
+  // Photos stored in Files table with category "QC_PHOTOS"
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QCStatus {
+  PENDING
+  IN_PROGRESS
+  PASSED
+  FAILED
+  CONDITIONAL_PASS
 }
 
 // ========================================
@@ -591,6 +747,16 @@ enum ActivityType {
   PROTOTYPE_CREATED
   PROTOTYPE_UPDATED
   PROTOTYPE_APPROVED
+  VENDOR_CREATED
+  VENDOR_UPDATED
+  PO_CREATED
+  PO_UPDATED
+  PO_SENT
+  PO_CONFIRMED
+  QC_CHECKPOINT_CREATED
+  QC_CHECKPOINT_UPDATED
+  QC_PASSED
+  QC_FAILED
 }
 
 // ========================================
