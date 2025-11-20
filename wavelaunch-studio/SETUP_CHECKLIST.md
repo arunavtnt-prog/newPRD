@@ -33,13 +33,29 @@ npm install
 
 ⏱️ **Wait**: This takes 2-5 minutes. You'll see a progress bar.
 
-### Step 4: Initialize Database
+### Step 4: Set Up PostgreSQL Database
+
+**Option A: Cloud Database (Recommended - No Installation)**
+1. Sign up at [Neon](https://neon.tech) or [Supabase](https://supabase.com) (free tier)
+2. Create a new project/database
+3. Copy the connection string
+4. Update `.env.local` with your DATABASE_URL
+
+**Option B: Local PostgreSQL**
+- Mac: `brew install postgresql@16 && brew services start postgresql@16`
+- Windows: Install from [postgresql.org](https://www.postgresql.org/download/)
+- Create DB: `createdb wavelaunch_studio`
+
+Then initialize:
 
 ```bash
 npm run db:push
+# or: npm run db:migrate
 ```
 
 ✅ **Success**: You'll see "Your database is now in sync with your schema"
+
+See `POSTGRESQL_MIGRATION.md` for detailed instructions.
 
 ### Step 5: Add Sample Data
 
@@ -134,10 +150,14 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-### Reset Everything
+### Reset Database
 
 ```bash
-rm prisma/dev.db
+# Reset and recreate database
+npx prisma migrate reset
+
+# Or manually drop and recreate:
+# dropdb wavelaunch_studio && createdb wavelaunch_studio
 npm run db:push
 npm run db:seed
 ```

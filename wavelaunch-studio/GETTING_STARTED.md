@@ -63,13 +63,29 @@ npm install
 
 ### Step 4: Set Up Database
 
-We use a local database (SQLite) that stores all data on your computer:
+We use PostgreSQL database. You have two options:
+
+**Option A: Cloud Database (Easiest - No Installation)**
+1. Sign up for free at [Neon](https://neon.tech) or [Supabase](https://supabase.com)
+2. Create a new database project
+3. Copy the connection string
+4. Update `.env.local` file with your connection string
+
+**Option B: Local PostgreSQL**
+- **Mac**: `brew install postgresql@16 && brew services start postgresql@16`
+- **Windows**: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
+- Create database: `createdb wavelaunch_studio`
+
+Then push the schema:
 
 ```bash
 npm run db:push
+# or for production: npm run db:migrate
 ```
 
-**What happens**: Creates a database file `dev.db` with tables for Users, Projects, Files, etc.
+**What happens**: Creates database tables for Users, Projects, Files, etc.
+
+See `POSTGRESQL_MIGRATION.md` for detailed setup instructions.
 
 ### Step 5: Add Sample Data (Optional)
 
