@@ -94,6 +94,22 @@ export default async function ProjectDetailPage({
         },
         orderBy: { createdAt: "desc" },
       },
+      vendors: {
+        include: {
+          purchaseOrders: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      purchaseOrders: {
+        include: {
+          vendor: true,
+          lineItems: true,
+          qcCheckpoints: {
+            orderBy: { createdAt: "desc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
