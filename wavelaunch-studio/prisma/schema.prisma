@@ -1,0 +1,474 @@
+// Wavelaunch Studio Database Schema
+// This file defines the structure of all database tables
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// USER MANAGEMENT
+// ========================================
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  role         UserRole  @default(TEAM_MEMBER)
+
+  // Profile
+  profilePhotoUrl String?
+  isActive        Boolean @default(true)
+  lastLoginAt     DateTime?
+
+  // Notification Preferences
+  notifyEmailApprovals Boolean @default(true)
+  notifyEmailMentions  Boolean @default(true)
+  notifyEmailUpdates   Boolean @default(true)
+
+  // Relations
+  projectMemberships ProjectUser[]
+  leadProjects       Project[]     @relation("ProjectLead")
+  uploadedFiles      File[]
+  comments           Comment[]
+  notifications      Notification[]
+  activities         Activity[]
+  approvalReviews    ApprovalReviewer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  TEAM_MEMBER
+  CREATOR
+}
+
+// ========================================
+// PROJECT MANAGEMENT
+// ========================================
+
+model Project {
+  id                 String          @id @default(cuid())
+  projectName        String
+  creatorName        String
+  category           ProjectCategory
+  startDate          DateTime
+  expectedLaunchDate DateTime
+  actualLaunchDate   DateTime?
+  status             ProjectStatus   @default(ONBOARDING)
+
+  // Lead Assignment
+  leadStrategistId String
+  leadStrategist   User   @relation("ProjectLead", fields: [leadStrategistId], references: [id])
+
+  // Relations
+  phases        ProjectPhase[]
+  team          ProjectUser[]
+  files         File[]
+  assets        Asset[]
+  approvals     Approval[]
+  comments      Comment[]
+  activities    Activity[]
+  questionnaire Questionnaire?
+  colorPalettes ColorPalette[]
+  taglines      Tagline[]
+  assetGenerationJobs AssetGeneration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProjectCategory {
+  FASHION
+  BEAUTY
+  FITNESS
+  LIFESTYLE
+  OTHER
+}
+
+enum ProjectStatus {
+  ONBOARDING
+  DISCOVERY
+  BRANDING
+  PRODUCT_DEV
+  MANUFACTURING
+  WEBSITE
+  MARKETING
+  LAUNCH
+  COMPLETED
+  ARCHIVED
+}
+
+model ProjectPhase {
+  id         String      @id @default(cuid())
+  projectId  String
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  phaseName  String      // M0: Onboarding, M1: Discovery, etc.
+  phaseOrder Int         // 0, 1, 2, 3, 4, 5, 6, 7
+  status     PhaseStatus @default(NOT_STARTED)
+  startDate  DateTime?
+  endDate    DateTime?
+
+  // Checklist items stored as JSON: [{id, title, required, completed}]
+  checklistItems String @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, phaseOrder])
+}
+
+enum PhaseStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model ProjectUser {
+  id        String      @id @default(cuid())
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      ProjectRole @default(VIEWER)
+  addedById String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+enum ProjectRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+// ========================================
+// FILE MANAGEMENT
+// ========================================
+
+model File {
+  id               String     @id @default(cuid())
+  filename         String
+  originalFilename String
+  fileType         String
+  fileSize         Int
+  s3Key            String
+  s3Url            String
+  thumbnailS3Url   String?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId   String?
+  folder    FileFolder
+
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  currentVersionId String?
+  versions         FileVersion[]
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum FileFolder {
+  REFS
+  BRAND
+  PRODUCT
+  MANUFACTURING
+  WEBSITE
+  MARKETING
+  CREATOR_UPLOADS
+  QUESTIONNAIRE_REFS
+  GENERATED_LOGOS
+  GENERATED_TEMPLATES
+}
+
+model FileVersion {
+  id            String @id @default(cuid())
+  fileId        String
+  file          File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  s3Key         String
+  s3Url         String
+
+  uploadedById String
+
+  createdAt DateTime @default(now())
+}
+
+// ========================================
+// BRAND ASSETS
+// ========================================
+
+model Asset {
+  id        String    @id @default(cuid())
+  assetName String
+  assetType AssetType
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fileId String?
+
+  // Additional asset-specific data stored as JSON
+  metadata String @default("{}")
+
+  approvals Approval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AssetType {
+  LOGO
+  COLOR_PALETTE
+  TAGLINE
+  SOCIAL_TEMPLATE
+  PACKAGING
+  BRAND_BOOK
+  OTHER
+}
+
+model AssetGeneration {
+  id        String              @id @default(cuid())
+  projectId String
+  project   Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  jobType   AssetGenerationType
+  status    JobStatus           @default(PENDING)
+
+  // Input data (questionnaire responses, params)
+  inputData String @default("{}")
+
+  // Output data (generated URLs, metadata)
+  outputData String?
+
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AssetGenerationType {
+  LOGO_GEN
+  PALETTE_GEN
+  TAGLINE_GEN
+  TEMPLATE_GEN
+  FULL_BRAND_PACKAGE
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ColorPalette {
+  id          String  @id @default(cuid())
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  paletteName String
+  isPrimary   Boolean @default(false)
+
+  // Array of colors: [{name, hex, rgb, usage, luminance}]
+  colors String @default("[]")
+
+  createdAt DateTime @default(now())
+}
+
+model Tagline {
+  id             String  @id @default(cuid())
+  projectId      String
+  taglineText    String
+  characterCount Int
+  aiGenerated    Boolean @default(true)
+  voteCount      Int     @default(0)
+  isFinal        Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+// ========================================
+// APPROVAL WORKFLOWS
+// ========================================
+
+model Approval {
+  id        String         @id @default(cuid())
+  projectId String
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId   String?
+
+  // Can contain multiple assets
+  assetIds String @default("[]") // JSON array of asset IDs
+
+  requestedById String
+  message       String?
+  dueDate       DateTime?
+  status        ApprovalStatus @default(PENDING)
+
+  reviewers ApprovalReviewer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+  OVERDUE
+}
+
+model ApprovalReviewer {
+  id         String         @id @default(cuid())
+  approvalId String
+  approval   Approval       @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+
+  reviewerId String
+  reviewer   User   @relation(fields: [reviewerId], references: [id])
+
+  status           ReviewerStatus @default(PENDING)
+  feedbackText     String?
+  issueCategories  String         @default("[]") // JSON array
+  reviewedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([approvalId, reviewerId])
+}
+
+enum ReviewerStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+// ========================================
+// COMMUNICATION
+// ========================================
+
+model Comment {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId   String?
+  assetId   String?
+  parentId  String? // For threading
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  commentText String
+  mentions    String @default("[]") // JSON array of user IDs
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  eventType NotificationEvent
+  message   String
+  linkUrl   String?
+  projectId String?
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+enum NotificationEvent {
+  APPROVAL_REQUESTED
+  APPROVAL_APPROVED
+  APPROVAL_CHANGES_REQUESTED
+  COMMENT_MENTION
+  PHASE_COMPLETED
+  FILE_UPLOADED
+  TEAM_ASSIGNED
+  ASSET_GENERATION_COMPLETE
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  projectId   String
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+
+  actionType        ActivityType
+  actionDescription String
+  metadata          String       @default("{}") // JSON
+
+  createdAt DateTime @default(now())
+}
+
+enum ActivityType {
+  PROJECT_CREATED
+  PHASE_STARTED
+  PHASE_COMPLETED
+  FILE_UPLOADED
+  APPROVAL_SUBMITTED
+  APPROVAL_DECIDED
+  COMMENT_ADDED
+  TEAM_MEMBER_ADDED
+  TEAM_MEMBER_REMOVED
+  ASSET_GENERATED
+}
+
+// ========================================
+// BRAND DISCOVERY
+// ========================================
+
+model Questionnaire {
+  id          String              @id @default(cuid())
+  projectId   String              @unique
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  status      QuestionnaireStatus @default(IN_PROGRESS)
+  startedAt   DateTime            @default(now())
+  completedAt DateTime?
+  submittedBy String?
+
+  responses QuestionnaireResponse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QuestionnaireStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model QuestionnaireResponse {
+  id              String        @id @default(cuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+
+  questionNumber Int
+  questionText   String
+  responseText   String?
+  responseType   String // text, multiselect, file, number
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([questionnaireId, questionNumber])
+}
