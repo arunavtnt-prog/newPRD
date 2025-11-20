@@ -235,16 +235,18 @@ export function ProjectFiles({ projectId, files }: ProjectFilesProps) {
           })}
         </div>
       ) : (
-        <Card>
+        <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <FolderOpen className="h-16 w-16 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <FolderOpen className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">
               {selectedFolder ? "No files in this folder" : "No files uploaded"}
             </h3>
-            <p className="text-muted-foreground text-center max-w-sm mb-6">
+            <p className="text-sm text-muted-foreground text-center max-w-md mb-6">
               {selectedFolder
                 ? "Upload files to this folder to get started"
-                : "Upload files to organize project assets and references"}
+                : "Upload files to organize project assets and references. Keep everything in one place for easy access by your team."}
             </p>
             <UploadFileDialog projectId={projectId}>
               <Button>

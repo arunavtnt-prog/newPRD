@@ -1,0 +1,42 @@
+{
+  "scripts": {
+    "_comment": "Add these scripts to your package.json",
+
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run",
+    "test:ui": "vitest --ui",
+
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ci": "playwright test --reporter=github",
+
+    "test:lighthouse": "lhci autorun",
+    "test:bundle": "ANALYZE=true npm run build",
+    "test:smoke": "npm run test:ci && npm run test:e2e:ci",
+
+    "type-check": "tsc --noEmit",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+
+    "db:test:setup": "NODE_ENV=test npx prisma migrate deploy",
+    "db:test:seed": "NODE_ENV=test npx prisma db seed",
+    "db:test:reset": "NODE_ENV=test npx prisma migrate reset --force"
+  },
+
+  "devDependencies": {
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "@playwright/test": "^1.40.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "msw": "^2.0.0",
+    "@lhci/cli": "^0.13.0"
+  }
+}

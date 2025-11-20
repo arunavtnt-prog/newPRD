@@ -7,6 +7,7 @@ import {
   DollarSign,
   Bell,
   Users,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 
@@ -51,6 +52,12 @@ export const sidebarItems: NavGroup[] = [
         icon: FolderKanban,
       },
       {
+        title: "Analytics",
+        url: "/dashboard/analytics",
+        icon: BarChart3,
+        isNew: true,
+      },
+      {
         title: "Asset Generation",
         url: "/dashboard/asset-generation",
         icon: ImagePlus,
@@ -78,7 +85,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Team",
         url: "/dashboard/team",
         icon: Users,
-        comingSoon: true,
       },
       {
         title: "Finance",
@@ -90,7 +96,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Notifications",
         url: "/dashboard/notifications",
         icon: Bell,
-        comingSoon: true,
       },
     ],
   },

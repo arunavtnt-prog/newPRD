@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Folder } from "lucide-react";
+import { ArrowRight, Folder, FolderOpen } from "lucide-react";
 
 interface Project {
   id: string;
@@ -47,9 +47,14 @@ export function ProjectsList({ projects }: ProjectsListProps) {
       <CardContent>
         <div className="space-y-3">
           {projects.length === 0 ? (
-            <div className="text-center py-8">
-              <Folder className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-sm text-muted-foreground">No active projects</p>
+            <div className="text-center py-8 px-4">
+              <div className="mb-3 rounded-full bg-muted p-3 inline-block">
+                <FolderOpen className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium mb-1">No active projects</p>
+              <p className="text-xs text-muted-foreground">
+                Create your first project to get started
+              </p>
             </div>
           ) : (
             projects.map((project) => (
