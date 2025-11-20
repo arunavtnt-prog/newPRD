@@ -7,7 +7,7 @@
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { ProjectsDataTable } from "./_components/projects-data-table";
+import { ProjectsDataTableWithBulk } from "./_components/projects-data-table-with-bulk";
 import { type ProjectRow } from "./_components/projects-table-columns";
 import { CreateProjectDialog } from "./_components/create-project-dialog";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,10 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <EmptyProjects />
       ) : (
-        <ProjectsDataTable data={tableData} />
+        <ProjectsDataTableWithBulk
+          data={tableData}
+          leadStrategists={leadStrategists}
+        />
       )}
     </div>
   );
