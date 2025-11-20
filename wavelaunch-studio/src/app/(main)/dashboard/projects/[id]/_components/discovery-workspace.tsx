@@ -18,15 +18,18 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { DiscoveryQuestionnaire } from "./discovery-questionnaire";
+import { ReferenceUpload } from "./reference-upload";
 
 interface DiscoveryWorkspaceProps {
   projectId: string;
   discoveryData?: any; // Will properly type later
+  references?: any[]; // Will properly type later
 }
 
 export function DiscoveryWorkspace({
   projectId,
   discoveryData,
+  references = [],
 }: DiscoveryWorkspaceProps) {
   const [activeTab, setActiveTab] = React.useState("questionnaire");
 
@@ -60,7 +63,9 @@ export function DiscoveryWorkspace({
                 <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold">
+                  {discoveryData ? "28" : "0"}
+                </p>
                 <p className="text-xs text-muted-foreground">Questions</p>
               </div>
             </div>
@@ -74,7 +79,7 @@ export function DiscoveryWorkspace({
                 <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-2xl font-bold">{references.length}</p>
                 <p className="text-xs text-muted-foreground">References</p>
               </div>
             </div>
@@ -88,7 +93,9 @@ export function DiscoveryWorkspace({
                 <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">85%</p>
+                <p className="text-2xl font-bold">
+                  {discoveryData ? "100" : "0"}%
+                </p>
                 <p className="text-xs text-muted-foreground">Audience</p>
               </div>
             </div>
@@ -102,7 +109,12 @@ export function DiscoveryWorkspace({
                 <MessageCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">Bold</p>
+                <p className="text-2xl font-bold">
+                  {discoveryData?.toneOfVoice
+                    ? discoveryData.toneOfVoice.charAt(0) +
+                      discoveryData.toneOfVoice.slice(1).toLowerCase()
+                    : "—"}
+                </p>
                 <p className="text-xs text-muted-foreground">Tone</p>
               </div>
             </div>
@@ -139,16 +151,7 @@ export function DiscoveryWorkspace({
         </TabsContent>
 
         <TabsContent value="references" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Visual References</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Reference upload component coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <ReferenceUpload projectId={projectId} references={references} />
         </TabsContent>
 
         <TabsContent value="audience" className="space-y-4 mt-6">

@@ -115,7 +115,15 @@ export function ProjectTabs({
       </TabsContent>
 
       <TabsContent value="discovery" className="space-y-6 mt-6">
-        <DiscoveryWorkspace projectId={project.id} />
+        <DiscoveryWorkspace
+          projectId={project.id}
+          discoveryData={project.discovery}
+          references={
+            project.files?.filter(
+              (f: any) => f.folder === "QUESTIONNAIRE_REFS" && !f.isDeleted
+            ) || []
+          }
+        />
       </TabsContent>
 
       <TabsContent value="branding" className="space-y-6 mt-6">

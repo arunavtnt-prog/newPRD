@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
     const projectId = formData.get("projectId") as string;
     const folder = formData.get("folder") as string;
+    const category = formData.get("category") as string | null;
+    const tagsJson = formData.get("tags") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest) {
         projectId: projectId,
         folder: (folder as any) || "CREATOR_UPLOADS",
         uploadedById: session.user.id,
+        category: category,
+        tags: tagsJson || "[]",
       },
       include: {
         uploadedBy: {

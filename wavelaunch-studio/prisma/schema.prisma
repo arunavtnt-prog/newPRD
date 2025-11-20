@@ -178,6 +178,10 @@ model File {
   currentVersionId String?
   versions         FileVersion[]
 
+  // Reference-specific fields (for discovery phase uploads)
+  category String? // For QUESTIONNAIRE_REFS folder
+  tags     String  @default("[]") // JSON array of tags
+
   isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())

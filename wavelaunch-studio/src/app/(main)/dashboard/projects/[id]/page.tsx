@@ -81,6 +81,7 @@ export default async function ProjectDetailPage({
         orderBy: { createdAt: "desc" },
         take: 10,
       },
+      discovery: true,
     },
   });
 
