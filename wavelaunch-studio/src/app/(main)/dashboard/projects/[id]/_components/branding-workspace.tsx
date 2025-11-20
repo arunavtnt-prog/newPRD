@@ -20,19 +20,24 @@ import {
 import { ColorPaletteGenerator } from "./color-palette-generator";
 import { LogoConcepts } from "./logo-concepts";
 import { TypographySelector } from "./typography-selector";
+import { BrandBook } from "./brand-book";
 
 interface BrandingWorkspaceProps {
   projectId: string;
+  projectName: string;
   colorPalettes?: any[];
   logos?: any[];
   typography?: any;
+  discovery?: any;
 }
 
 export function BrandingWorkspace({
   projectId,
+  projectName,
   colorPalettes = [],
   logos = [],
   typography,
+  discovery,
 }: BrandingWorkspaceProps) {
   const [activeTab, setActiveTab] = React.useState("colors");
 
@@ -155,16 +160,14 @@ export function BrandingWorkspace({
         </TabsContent>
 
         <TabsContent value="brandbook" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Brand Book</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Brand book generator coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <BrandBook
+            projectId={projectId}
+            projectName={projectName}
+            discovery={discovery}
+            colorPalettes={colorPalettes}
+            logos={logos}
+            typography={typography}
+          />
         </TabsContent>
       </Tabs>
     </div>

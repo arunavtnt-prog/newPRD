@@ -130,12 +130,15 @@ export function ProjectTabs({
       <TabsContent value="branding" className="space-y-6 mt-6">
         <BrandingWorkspace
           projectId={project.id}
+          projectName={project.projectName}
           colorPalettes={project.colorPalettes || []}
           logos={
             project.files?.filter(
               (f: any) => f.folder === "GENERATED_LOGOS" && !f.isDeleted
             ) || []
           }
+          typography={project.typography}
+          discovery={project.discovery}
         />
       </TabsContent>
 
