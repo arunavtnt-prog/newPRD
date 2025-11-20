@@ -1,7 +1,7 @@
 /**
- * Ad Creatives API Routes
+ * Campaigns API Routes
  *
- * Handles ad creative creation and listing
+ * Handles campaign creation and listing
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,17 +9,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
-const adCreativeSchema = z.object({
-  adName: z.string().min(1).max(200),
-  platform: z.enum(["FACEBOOK_ADS", "INSTAGRAM_ADS", "GOOGLE_ADS", "TIKTOK_ADS", "PINTEREST_ADS"]),
-  adFormat: z.enum(["SINGLE_IMAGE", "CAROUSEL", "VIDEO", "COLLECTION", "STORIES", "REELS"]),
-  campaignId: z.string().nullable().optional(),
-  headline: z.string().nullable().optional(),
-  primaryText: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-  callToAction: z.string().nullable().optional(),
-  variant: z.string().nullable().optional(),
-  status: z.enum(["DRAFT", "ACTIVE", "PAUSED", "COMPLETED"]).optional(),
+const campaignSchema = z.object({
+  campaignName: z.string().min(1).max(200),
+  campaignType: z.enum(["PRODUCT_LAUNCH", "BRAND_AWARENESS", "LEAD_GENERATION", "SALES_PROMOTION", "ENGAGEMENT", "RETARGETING"]),
+  objective: z.string().nullable().optional(),
+  budget: z.number().nullable().optional(),
+  startDate: z.string().nullable().optional(),
+  endDate: z.string().nullable().optional(),
+  status: z.enum(["PLANNING", "READY", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]).optional(),
   notes: z.string().nullable().optional(),
 });
 
@@ -45,13 +42,15 @@ export async function POST(
     }
 
     const body = await request.json();
-    const validatedData = adCreativeSchema.parse(body);
+    const validatedData = campaignSchema.parse(body);
 
-    const adCreative = await prisma.adCreative.create({
+    const campaign = await prisma.campaign.create({
       data: {
         projectId: projectId,
         ...validatedData,
-        status: validatedData.status || "DRAFT",
+        budget: validatedData.budget ? String(validatedData.budget) : null,
+        startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
+        endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
       },
     });
 
@@ -59,16 +58,16 @@ export async function POST(
       data: {
         projectId: projectId,
         userId: session.user.id,
-        actionType: "AD_CREATIVE_CREATED",
-        actionDescription: `Created ad creative "${validatedData.adName}"`,
+        actionType: "CAMPAIGN_CREATED",
+        actionDescription: `Created campaign "${validatedData.campaignName}"`,
         metadata: JSON.stringify({
-          adId: adCreative.id,
-          platform: validatedData.platform,
+          campaignId: campaign.id,
+          campaignType: validatedData.campaignType,
         }),
       },
     });
 
-    return NextResponse.json(adCreative, { status: 201 });
+    return NextResponse.json(campaign, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -77,7 +76,7 @@ export async function POST(
       );
     }
 
-    console.error("Error creating ad creative:", error);
+    console.error("Error creating campaign:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -97,22 +96,18 @@ export async function GET(
 
     const projectId = params.id;
 
-    const adCreatives = await prisma.adCreative.findMany({
+    const campaigns = await prisma.campaign.findMany({
       where: { projectId: projectId },
       include: {
-        campaign: {
-          select: {
-            id: true,
-            campaignName: true,
-          },
-        },
+        contentPosts: true,
+        adCreatives: true,
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ adCreatives }, { status: 200 });
+    return NextResponse.json({ campaigns }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching ad creatives:", error);
+    console.error("Error fetching campaigns:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

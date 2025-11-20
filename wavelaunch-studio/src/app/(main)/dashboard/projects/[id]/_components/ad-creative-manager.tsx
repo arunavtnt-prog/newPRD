@@ -101,6 +101,52 @@ export function AdCreativeManager({
     setIsAdDialogOpen(true);
   };
 
+  const handleEditAd = (ad: any) => {
+    setEditingAd(ad);
+    setAdFormData({
+      adName: ad.adName || "",
+      platform: ad.platform || "FACEBOOK_ADS",
+      adFormat: ad.adFormat || "SINGLE_IMAGE",
+      campaignId: ad.campaignId || "",
+      headline: ad.headline || "",
+      primaryText: ad.primaryText || "",
+      description: ad.description || "",
+      callToAction: ad.callToAction || "",
+      variant: ad.variant || "",
+      notes: ad.notes || "",
+    });
+    setIsAdDialogOpen(true);
+  };
+
+  const handleDeleteAd = async (adId: string) => {
+    if (!confirm("Are you sure you want to delete this ad creative?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/ads/${adId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete ad");
+      }
+
+      toast({
+        title: "Ad deleted",
+        description: "Ad creative has been deleted successfully",
+      });
+
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete ad creative",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSaveAd = async () => {
     if (!adFormData.adName) {
       toast({
@@ -182,6 +228,24 @@ export function AdCreativeManager({
                       <p className="text-sm text-muted-foreground">
                         {ad.platform.replace("_", " ")}
                       </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditAd(ad)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteAd(ad.id)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
 
