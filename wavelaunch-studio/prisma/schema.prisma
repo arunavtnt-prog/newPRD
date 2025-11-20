@@ -79,6 +79,7 @@ model Project {
   questionnaire Questionnaire?
   discovery     Discovery?
   colorPalettes ColorPalette[]
+  typography    Typography?
   taglines      Tagline[]
   assetGenerationJobs AssetGeneration[]
 
@@ -299,6 +300,38 @@ model ColorPalette {
   // Application colors
   backgroundColor String?
   textColor       String?
+
+  isApproved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Typography {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+
+  // Primary/Heading Font
+  primaryFontFamily String
+  primaryFontWeights String @default("[]") // JSON array ["400", "700"]
+  primaryFontSource String? // Google Fonts URL or "custom"
+
+  // Secondary/Body Font
+  secondaryFontFamily String
+  secondaryFontWeights String @default("[]")
+  secondaryFontSource String?
+
+  // Optional Accent Font
+  accentFontFamily String?
+  accentFontWeights String? @default("[]")
+  accentFontSource String?
+
+  // Usage guidelines
+  headingScale String? // JSON with h1-h6 sizes
+  bodySize String? // Default body text size
+  notes String?
 
   isApproved Boolean @default(false)
 

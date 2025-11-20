@@ -85,6 +85,7 @@ export default async function ProjectDetailPage({
       colorPalettes: {
         orderBy: { createdAt: "desc" },
       },
+      typography: true,
     },
   });
 

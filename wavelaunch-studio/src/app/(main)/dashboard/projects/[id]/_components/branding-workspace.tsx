@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ColorPaletteGenerator } from "./color-palette-generator";
 import { LogoConcepts } from "./logo-concepts";
+import { TypographySelector } from "./typography-selector";
 
 interface BrandingWorkspaceProps {
   projectId: string;
@@ -150,16 +151,7 @@ export function BrandingWorkspace({
         </TabsContent>
 
         <TabsContent value="typography" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Typography System</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Typography selector coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <TypographySelector projectId={projectId} typography={typography} />
         </TabsContent>
 
         <TabsContent value="brandbook" className="space-y-4 mt-6">
