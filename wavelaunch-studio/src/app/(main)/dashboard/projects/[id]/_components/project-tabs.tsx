@@ -9,6 +9,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectOverview } from "./project-overview";
 import { ProjectFiles } from "./project-files";
+import { ProjectApprovals } from "./project-approvals";
 import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
@@ -19,10 +20,15 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
   // Get phases grouped by milestone
   const phases = project.phases || [];
 
+  // Get pending approvals count
+  const pendingApprovalsCount =
+    project.approvals?.filter((a: any) => a.status === "PENDING").length || 0;
+
   // Define available tabs based on project phases
   const phaseTabs = [
     { value: "overview", label: "Overview", icon: null },
     { value: "files", label: "Files", icon: null, alwaysEnabled: true },
+    { value: "approvals", label: "Approvals", icon: null, alwaysEnabled: true },
     { value: "discovery", label: "Discovery (M1)", icon: null, phaseKey: "DISCOVERY" },
     { value: "branding", label: "Branding (M2-M3)", icon: null, phaseKey: "BRANDING" },
     { value: "product", label: "Product (M4-M5)", icon: null, phaseKey: "PRODUCT_DEV" },
@@ -60,6 +66,11 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
                   {project.files.length}
                 </Badge>
               )}
+              {tab.value === "approvals" && pendingApprovalsCount > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                  {pendingApprovalsCount}
+                </Badge>
+              )}
               {isActive && (
                 <Badge variant="default" className="ml-2 h-5 px-1.5 text-xs">
                   Active
@@ -81,6 +92,10 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
 
       <TabsContent value="files" className="space-y-6 mt-6">
         <ProjectFiles projectId={project.id} files={project.files || []} />
+      </TabsContent>
+
+      <TabsContent value="approvals" className="space-y-6 mt-6">
+        <ProjectApprovals projectId={project.id} approvals={project.approvals || []} />
       </TabsContent>
 
       <TabsContent value="discovery" className="space-y-6 mt-6">

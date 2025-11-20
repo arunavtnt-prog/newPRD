@@ -55,8 +55,19 @@ export default async function ProjectDetailPage({
         take: 10,
       },
       approvals: {
+        include: {
+          reviewers: {
+            include: {
+              reviewer: {
+                select: {
+                  fullName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
-        take: 5,
       },
       comments: {
         include: {
