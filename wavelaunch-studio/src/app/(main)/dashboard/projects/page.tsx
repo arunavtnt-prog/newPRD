@@ -7,8 +7,8 @@
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { DataTable } from "@/components/data-table/data-table";
-import { columns, ProjectRow } from "./_components/projects-table-columns";
+import { ProjectsDataTable } from "./_components/projects-data-table";
+import { type ProjectRow } from "./_components/projects-table-columns";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -69,7 +69,7 @@ export default async function ProjectsPage() {
       </div>
 
       {/* Projects Table */}
-      <DataTable columns={columns} data={tableData} />
+      <ProjectsDataTable data={tableData} />
     </div>
   );
 }
