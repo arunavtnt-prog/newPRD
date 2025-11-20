@@ -41,16 +41,33 @@ export default async function ProjectDetailPage({
         orderBy: { phaseOrder: "asc" },
       },
       files: {
-        orderBy: { uploadedAt: "desc" },
-        take: 10,
+        include: {
+          uploadedBy: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
       },
       assets: {
         orderBy: { createdAt: "desc" },
         take: 10,
       },
       approvals: {
+        include: {
+          reviewers: {
+            include: {
+              reviewer: {
+                select: {
+                  fullName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
-        take: 5,
       },
       comments: {
         include: {
@@ -64,6 +81,71 @@ export default async function ProjectDetailPage({
         orderBy: { createdAt: "desc" },
         take: 10,
       },
+      discovery: true,
+      colorPalettes: {
+        orderBy: { createdAt: "desc" },
+      },
+      typography: true,
+      productSKUs: {
+        include: {
+          prototypes: {
+            orderBy: { createdAt: "desc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      vendors: {
+        include: {
+          purchaseOrders: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      purchaseOrders: {
+        include: {
+          vendor: true,
+          lineItems: true,
+          qcCheckpoints: {
+            orderBy: { createdAt: "desc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      websiteConfig: true,
+      websitePages: {
+        include: {
+          sections: {
+            orderBy: { orderIndex: "asc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      copySnippets: {
+        orderBy: [{ purpose: "asc" }, { createdAt: "desc" }],
+      },
+      campaigns: {
+        orderBy: { createdAt: "desc" },
+      },
+      contentPosts: {
+        include: {
+          campaign: true,
+        },
+        orderBy: { scheduledDate: "desc" },
+      },
+      adCreatives: {
+        include: {
+          campaign: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      launchTasks: {
+        orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
+      },
+      influencers: {
+        orderBy: { createdAt: "desc" },
+      },
+      ugcSubmissions: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
@@ -72,10 +154,28 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  // Fetch available reviewers for approval requests
+  const availableReviewers = await prisma.user.findMany({
+    where: {
+      role: { in: ["ADMIN", "TEAM_MEMBER"] },
+      isActive: true,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+    },
+    orderBy: { fullName: "asc" },
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <ProjectHeader project={project} />
-      <ProjectTabs project={project} />
+      <ProjectTabs
+        project={project}
+        availableReviewers={availableReviewers}
+        currentUserId={session.user.id}
+      />
     </div>
   );
 }

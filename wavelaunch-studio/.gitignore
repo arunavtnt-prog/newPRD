@@ -40,3 +40,6 @@ next-env.d.ts
 /prisma/dev.db
 /prisma/dev.db-journal
 /prisma/migrations
+
+# uploads (local development only)
+/public/uploads

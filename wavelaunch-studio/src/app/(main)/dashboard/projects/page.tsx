@@ -7,8 +7,9 @@
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { DataTable } from "@/components/data-table/data-table";
-import { columns, ProjectRow } from "./_components/projects-table-columns";
+import { ProjectsDataTable } from "./_components/projects-data-table";
+import { type ProjectRow } from "./_components/projects-table-columns";
+import { CreateProjectDialog } from "./_components/create-project-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -38,6 +39,23 @@ export default async function ProjectsPage() {
     },
   });
 
+  // Fetch available lead strategists (admins and team members)
+  const leadStrategists = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ["ADMIN", "TEAM_MEMBER"],
+      },
+      isActive: true,
+    },
+    select: {
+      id: true,
+      fullName: true,
+    },
+    orderBy: {
+      fullName: "asc",
+    },
+  });
+
   // Transform data for table
   const tableData: ProjectRow[] = projects.map((project) => ({
     id: project.id,
@@ -62,14 +80,16 @@ export default async function ProjectsPage() {
             Manage all creator brand projects ({projects.length} total)
           </p>
         </div>
-        <Button disabled>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Project
-        </Button>
+        <CreateProjectDialog leadStrategists={leadStrategists}>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Project
+          </Button>
+        </CreateProjectDialog>
       </div>
 
       {/* Projects Table */}
-      <DataTable columns={columns} data={tableData} />
+      <ProjectsDataTable data={tableData} />
     </div>
   );
 }

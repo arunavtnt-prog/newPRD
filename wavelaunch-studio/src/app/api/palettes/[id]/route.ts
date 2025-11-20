@@ -1,0 +1,68 @@
+/**
+ * Color Palette API Route
+ *
+ * Handles individual palette operations (delete)
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const paletteId = params.id;
+
+    // Fetch palette
+    const palette = await prisma.colorPalette.findUnique({
+      where: { id: paletteId },
+      include: {
+        project: {
+          select: {
+            id: true,
+            projectName: true,
+          },
+        },
+      },
+    });
+
+    if (!palette) {
+      return NextResponse.json({ error: "Palette not found" }, { status: 404 });
+    }
+
+    // Delete palette
+    await prisma.colorPalette.delete({
+      where: { id: paletteId },
+    });
+
+    // Create activity log
+    await prisma.activity.create({
+      data: {
+        projectId: palette.projectId,
+        userId: session.user.id,
+        actionType: "ASSET_GENERATED",
+        actionDescription: `Deleted color palette "${palette.name}"`,
+        metadata: JSON.stringify({
+          paletteId: palette.id,
+          paletteName: palette.name,
+        }),
+      },
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting palette:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

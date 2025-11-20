@@ -77,8 +77,22 @@ model Project {
   comments      Comment[]
   activities    Activity[]
   questionnaire Questionnaire?
+  discovery     Discovery?
   colorPalettes ColorPalette[]
+  typography    Typography?
   taglines      Tagline[]
+  productSKUs   ProductSKU[]
+  vendors       Vendor[]
+  purchaseOrders PurchaseOrder[]
+  websiteConfig  WebsiteConfig?
+  websitePages   WebsitePage[]
+  copySnippets   CopySnippet[]
+  campaigns      Campaign[]
+  contentPosts   ContentPost[]
+  adCreatives    AdCreative[]
+  launchTasks    LaunchTask[]
+  influencers    Influencer[]
+  ugcSubmissions UGCSubmission[]
   assetGenerationJobs AssetGeneration[]
 
   createdAt DateTime @default(now())
@@ -177,6 +191,10 @@ model File {
   currentVersionId String?
   versions         FileVersion[]
 
+  // Reference-specific fields (for discovery phase uploads)
+  category String? // For QUESTIONNAIRE_REFS folder
+  tags     String  @default("[]") // JSON array of tags
+
   isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -194,6 +212,16 @@ enum FileFolder {
   QUESTIONNAIRE_REFS
   GENERATED_LOGOS
   GENERATED_TEMPLATES
+  PROTOTYPE_PHOTOS
+  PRODUCT_SPECS
+  TECH_PACKS
+  QC_PHOTOS
+  PO_DOCUMENTS
+  SHIPPING_DOCS
+  CONTENT_ASSETS
+  AD_CREATIVES
+  INFLUENCER_CONTENT
+  UGC_SUBMISSIONS
 }
 
 model FileVersion {
@@ -280,13 +308,57 @@ model ColorPalette {
   id          String  @id @default(cuid())
   projectId   String
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  paletteName String
-  isPrimary   Boolean @default(false)
+  name        String
 
-  // Array of colors: [{name, hex, rgb, usage, luminance}]
-  colors String @default("[]")
+  // Core colors
+  primaryColor    String
+  secondaryColor  String?
+  accentColor     String?
+
+  // Neutrals
+  neutralLight  String?
+  neutralDark   String?
+
+  // Application colors
+  backgroundColor String?
+  textColor       String?
+
+  isApproved Boolean @default(false)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Typography {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+
+  // Primary/Heading Font
+  primaryFontFamily String
+  primaryFontWeights String @default("[]") // JSON array ["400", "700"]
+  primaryFontSource String? // Google Fonts URL or "custom"
+
+  // Secondary/Body Font
+  secondaryFontFamily String
+  secondaryFontWeights String @default("[]")
+  secondaryFontSource String?
+
+  // Optional Accent Font
+  accentFontFamily String?
+  accentFontWeights String? @default("[]")
+  accentFontSource String?
+
+  // Usage guidelines
+  headingScale String? // JSON with h1-h6 sizes
+  bodySize String? // Default body text size
+  notes String?
+
+  isApproved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Tagline {
@@ -299,6 +371,255 @@ model Tagline {
   isFinal        Boolean @default(false)
 
   createdAt DateTime @default(now())
+}
+
+// ========================================
+// PRODUCT DEVELOPMENT
+// ========================================
+
+model ProductSKU {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  skuCode     String
+  productName String
+  description String?
+
+  // Variants
+  size  String?
+  color String?
+  material String?
+  style String?
+
+  // Pricing
+  wholesaleCost  Decimal?
+  retailPrice    Decimal?
+  targetMargin   Decimal?
+
+  // Specifications
+  dimensions String? // "L x W x H"
+  weight     String?
+  materials  String? // JSON array
+  careInstructions String?
+
+  // Production
+  moq              Int? // Minimum Order Quantity
+  leadTimeDays     Int?
+  supplierName     String?
+  supplierContact  String?
+
+  // Status
+  status ProductStatus @default(PLANNING)
+
+  // Relations
+  prototypes  Prototype[]
+  poLineItems POLineItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductStatus {
+  PLANNING
+  SAMPLING
+  APPROVED
+  IN_PRODUCTION
+  READY_TO_SHIP
+  DISCONTINUED
+}
+
+model Prototype {
+  id           String     @id @default(cuid())
+  productSKUId String
+  productSKU   ProductSKU @relation(fields: [productSKUId], references: [id], onDelete: Cascade)
+
+  version      String // "V1", "V2", etc.
+  sampleType   SampleType
+  description  String?
+
+  // Feedback
+  feedback     String?
+  issues       String? // JSON array
+  improvements String? // JSON array
+
+  // Status
+  status       PrototypeStatus @default(ORDERED)
+  orderedDate  DateTime?
+  receivedDate DateTime?
+  approvedDate DateTime?
+
+  // Images stored in Files table with category "PROTOTYPE"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SampleType {
+  FIRST_SAMPLE
+  REVISED_SAMPLE
+  PRE_PRODUCTION
+  PRODUCTION_RUN
+}
+
+enum PrototypeStatus {
+  ORDERED
+  IN_TRANSIT
+  RECEIVED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+// ========================================
+// MANUFACTURING & PRODUCTION
+// ========================================
+
+model Vendor {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  name            String
+  contactPerson   String?
+  email           String?
+  phone           String?
+  address         String?
+  country         String?
+
+  // Capabilities
+  specialties     String? // JSON array
+  moqRange        String? // "100-500 units"
+  leadTimeRange   String? // "30-45 days"
+
+  // Performance
+  rating          Decimal? // 1-5 stars
+  notes           String?
+
+  // Relations
+  purchaseOrders PurchaseOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PurchaseOrder {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor  @relation(fields: [vendorId], references: [id])
+
+  // Order Info
+  poNumber          String  @unique
+  orderDate         DateTime
+  expectedShipDate  DateTime?
+  actualShipDate    DateTime?
+  expectedDelivery  DateTime?
+  actualDelivery    DateTime?
+
+  // Financials
+  subtotal      Decimal
+  shipping      Decimal?
+  tax           Decimal?
+  totalAmount   Decimal
+
+  // Status
+  status        POStatus      @default(DRAFT)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentTerms  String? // "Net 30", "50% deposit"
+
+  // Tracking
+  trackingNumber String?
+  shippingCarrier String?
+
+  // Notes
+  notes String?
+
+  // Relations
+  lineItems     POLineItem[]
+  qcCheckpoints QCCheckpoint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum POStatus {
+  DRAFT
+  SENT
+  CONFIRMED
+  IN_PRODUCTION
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  DEPOSIT_PAID
+  FULLY_PAID
+  REFUNDED
+}
+
+model POLineItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  productSKUId String?
+  productSKU   ProductSKU? @relation(fields: [productSKUId], references: [id])
+
+  // Item Details
+  description String
+  quantity    Int
+  unitPrice   Decimal
+  totalPrice  Decimal
+
+  // Specs
+  specifications String? // JSON with size, color, etc.
+
+  createdAt DateTime @default(now())
+}
+
+model QCCheckpoint {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  // Checkpoint Info
+  checkpointName String // "Pre-Production", "Mid-Production", "Final Inspection"
+  status         QCStatus @default(PENDING)
+
+  // Inspection
+  inspectionDate DateTime?
+  inspectedBy    String? // User name or external inspector
+
+  // Results
+  passed         Boolean?
+  defectRate     Decimal? // Percentage
+  sampleSize     Int?
+
+  // Issues
+  issues         String? // JSON array of issues found
+  correctionsPlan String?
+
+  // Photos stored in Files table with category "QC_PHOTOS"
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QCStatus {
+  PENDING
+  IN_PROGRESS
+  PASSED
+  FAILED
+  CONDITIONAL_PASS
 }
 
 // ========================================
@@ -425,11 +746,56 @@ enum ActivityType {
   PHASE_COMPLETED
   FILE_UPLOADED
   APPROVAL_SUBMITTED
+  APPROVAL_APPROVED
+  APPROVAL_CHANGES_REQUESTED
   APPROVAL_DECIDED
   COMMENT_ADDED
   TEAM_MEMBER_ADDED
   TEAM_MEMBER_REMOVED
   ASSET_GENERATED
+  DISCOVERY_COMPLETED
+  DISCOVERY_UPDATED
+  PRODUCT_SKU_CREATED
+  PRODUCT_SKU_UPDATED
+  PROTOTYPE_CREATED
+  PROTOTYPE_UPDATED
+  PROTOTYPE_APPROVED
+  VENDOR_CREATED
+  VENDOR_UPDATED
+  PO_CREATED
+  PO_UPDATED
+  PO_SENT
+  PO_CONFIRMED
+  QC_CHECKPOINT_CREATED
+  QC_CHECKPOINT_UPDATED
+  QC_PASSED
+  QC_FAILED
+  WEBSITE_CONFIG_UPDATED
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
+  SECTION_CREATED
+  COPY_CREATED
+  COPY_APPROVED
+  COPY_GENERATED
+  COPY_DELETED
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  CAMPAIGN_STARTED
+  CAMPAIGN_COMPLETED
+  CONTENT_POST_CREATED
+  CONTENT_POST_SCHEDULED
+  CONTENT_POST_PUBLISHED
+  AD_CREATIVE_CREATED
+  AD_CREATIVE_UPDATED
+  AD_CREATIVE_LAUNCHED
+  LAUNCH_TASK_CREATED
+  LAUNCH_TASK_COMPLETED
+  INFLUENCER_ADDED
+  INFLUENCER_CONTRACTED
+  INFLUENCER_POSTED
+  UGC_SUBMITTED
+  UGC_APPROVED
 }
 
 // ========================================
@@ -471,4 +837,608 @@ model QuestionnaireResponse {
   updatedAt DateTime @updatedAt
 
   @@unique([questionnaireId, questionNumber])
+}
+
+// Discovery data (structured brand questionnaire responses)
+model Discovery {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Brand Basics
+  brandVision      String
+  brandMission     String
+  brandValues      String
+  brandPersonality String
+
+  // Product & Category
+  productCategory        ProductCategory
+  productDescription     String
+  productDifferentiators String
+  pricePoint             PricePoint
+
+  // Audience
+  targetAgeRange      String
+  targetGender        TargetGender
+  targetIncome        IncomeLevel
+  targetLocation      String
+  audiencePainPoints  String
+  audienceAspirations String
+
+  // Brand Voice & Aesthetic
+  toneOfVoice         ToneOfVoice
+  aestheticDirection  String
+  colorPreferences    String?
+  avoidColors         String?
+
+  // Inspiration & Competition
+  inspirationBrands        String
+  competitorBrands         String
+  differentiationStrategy  String
+
+  // Content & Marketing
+  contentPillars    String
+  socialMediaFocus  String
+  launchGoals       String
+
+  // Additional
+  mustHaveElements String?
+  avoidElements    String?
+  additionalNotes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductCategory {
+  FASHION
+  BEAUTY
+  FITNESS
+  LIFESTYLE
+  OTHER
+}
+
+enum PricePoint {
+  BUDGET
+  MID_RANGE
+  PREMIUM
+  LUXURY
+}
+
+enum TargetGender {
+  FEMALE
+  MALE
+  NON_BINARY
+  ALL
+}
+
+enum IncomeLevel {
+  UNDER_30K
+  30K_50K
+  50K_75K
+  75K_100K
+  OVER_100K
+}
+
+enum ToneOfVoice {
+  PLAYFUL
+  SOPHISTICATED
+  BOLD
+  MINIMAL
+  AUTHENTIC
+  LUXURIOUS
+  EDGY
+  WARM
+}
+
+// ========================================
+// WEBSITE BUILD
+// ========================================
+
+model WebsiteConfig {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Theme
+  themeName     String? // "Minimal", "Bold", "Elegant"
+  themePreview  String? // URL to theme preview
+  primaryColor  String? // From approved color palette
+  fontPrimary   String? // From typography
+  fontSecondary String?
+
+  // Domain & SEO
+  domain       String?
+  metaTitle    String?
+  metaDescription String?
+  favicon      String?
+
+  // Platform
+  platform     WebsitePlatform?
+  platformUrl  String? // Shopify/Webflow URL
+
+  // Status
+  status       WebsiteStatus @default(PLANNING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum WebsitePlatform {
+  SHOPIFY
+  WEBFLOW
+  WORDPRESS
+  CUSTOM
+}
+
+enum WebsiteStatus {
+  PLANNING
+  IN_DESIGN
+  IN_DEVELOPMENT
+  STAGING
+  LIVE
+}
+
+model WebsitePage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Page Info
+  pageName    String // "Home", "About", "Product", "Contact"
+  slug        String // "home", "about", "products/tshirt"
+  pageType    PageType
+  isPublished Boolean @default(false)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+
+  // Content
+  sections PageSection[]
+
+  orderIndex Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, slug])
+}
+
+enum PageType {
+  HOME
+  ABOUT
+  PRODUCT
+  COLLECTION
+  CONTACT
+  BLOG
+  CUSTOM
+}
+
+model PageSection {
+  id         String      @id @default(cuid())
+  pageId     String
+  page       WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  // Section Info
+  sectionName String // "Hero", "Features", "Testimonials"
+  sectionType SectionType
+  orderIndex  Int
+
+  // Content (stored as JSON)
+  content String @default("{}") // Flexible JSON structure
+
+  isVisible Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SectionType {
+  HERO
+  FEATURES
+  PRODUCT_GRID
+  TESTIMONIALS
+  CTA
+  FAQ
+  ABOUT_STORY
+  GALLERY
+  CONTACT_FORM
+  CUSTOM_HTML
+}
+
+model CopySnippet {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Context
+  purpose      CopyPurpose // "Homepage Hero", "Product Description"
+  context      String? // Additional context
+  targetLength Int? // Character count target
+
+  // Generated Copy
+  content    String
+  variation  Int     @default(1) // V1, V2, V3
+  isApproved Boolean @default(false)
+  isFavorite Boolean @default(false)
+
+  // Metadata
+  generatedBy String? // "AI" or user name
+  prompt      String? // Original prompt used
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CopyPurpose {
+  HOMEPAGE_HERO
+  HOMEPAGE_SUBTITLE
+  ABOUT_STORY
+  PRODUCT_HEADLINE
+  PRODUCT_DESCRIPTION
+  PRODUCT_BENEFITS
+  CTA_BUTTON
+  EMAIL_SUBJECT
+  EMAIL_BODY
+  SOCIAL_POST
+  AD_HEADLINE
+  AD_BODY
+  META_DESCRIPTION
+  CUSTOM
+}
+
+// ========================================
+// MARKETING & LAUNCH (M8 Phase)
+// ========================================
+
+// Marketing campaign tracking
+model Campaign {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  campaignName  String
+  campaignType  CampaignType
+  objective     String?
+  budget        Decimal?
+  startDate     DateTime?
+  endDate       DateTime?
+
+  status        CampaignStatus @default(PLANNING)
+
+  // Metrics
+  impressions   Int?
+  clicks        Int?
+  conversions   Int?
+  spend         Decimal?
+  notes         String?
+
+  contentPosts  ContentPost[]
+  adCreatives   AdCreative[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CampaignType {
+  PRODUCT_LAUNCH
+  BRAND_AWARENESS
+  LEAD_GENERATION
+  SALES_PROMOTION
+  ENGAGEMENT
+  RETARGETING
+}
+
+enum CampaignStatus {
+  PLANNING
+  READY
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// Content calendar for social media and marketing
+model ContentPost {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  postTitle       String
+  postContent     String
+  platform        SocialPlatform
+  postType        ContentType
+
+  scheduledDate   DateTime?
+  publishedDate   DateTime?
+
+  status          PostStatus @default(DRAFT)
+
+  // Media & Assets
+  mediaUrls       String? // JSON array
+  assetIds        String? // JSON array of related asset IDs
+
+  // Engagement metrics
+  likes           Int?
+  comments        Int?
+  shares          Int?
+  views           Int?
+
+  // Hashtags & Tags
+  hashtags        String?
+  taggedAccounts  String?
+
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  TWITTER
+  LINKEDIN
+  PINTEREST
+  YOUTUBE
+  SNAPCHAT
+}
+
+enum ContentType {
+  PHOTO
+  VIDEO
+  CAROUSEL
+  STORY
+  REEL
+  THREAD
+  LIVE
+  ARTICLE
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  ARCHIVED
+}
+
+// Ad creative management and A/B testing
+model AdCreative {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  adName         String
+  adFormat       AdFormat
+  platform       AdPlatform
+
+  // Creative content
+  headline       String?
+  primaryText    String?
+  description    String?
+  callToAction   String?
+
+  // Media
+  imageUrl       String?
+  videoUrl       String?
+
+  // A/B Testing
+  variant        String? // e.g., "A", "B", "Control"
+  testGroup      String?
+
+  // Performance
+  impressions    Int?
+  clicks         Int?
+  conversions    Int?
+  spend          Decimal?
+  ctr            Decimal? // Click-through rate
+  cpc            Decimal? // Cost per click
+  cpa            Decimal? // Cost per acquisition
+
+  status         AdStatus @default(DRAFT)
+
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AdFormat {
+  SINGLE_IMAGE
+  CAROUSEL
+  VIDEO
+  COLLECTION
+  STORIES
+  REELS
+  SHOPPING
+}
+
+enum AdPlatform {
+  FACEBOOK_ADS
+  INSTAGRAM_ADS
+  GOOGLE_ADS
+  TIKTOK_ADS
+  PINTEREST_ADS
+  LINKEDIN_ADS
+  SNAPCHAT_ADS
+  TWITTER_ADS
+}
+
+enum AdStatus {
+  DRAFT
+  REVIEW
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+// Launch checklist and task management
+model LaunchTask {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  taskName      String
+  description   String?
+  category      LaunchCategory
+  priority      TaskPriority @default(MEDIUM)
+
+  assignedTo    String? // User ID
+  dueDate       DateTime?
+  completedDate DateTime?
+
+  status        TaskStatus @default(PENDING)
+
+  // Dependencies
+  dependsOn     String? // JSON array of task IDs
+  blockedBy     String?
+
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum LaunchCategory {
+  WEBSITE
+  INVENTORY
+  MARKETING
+  LEGAL
+  LOGISTICS
+  CUSTOMER_SERVICE
+  PAYMENT_SETUP
+  ANALYTICS
+  OTHER
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+  CANCELLED
+}
+
+// Influencer and partnership tracking
+model Influencer {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name            String
+  platform        SocialPlatform
+  handle          String
+  email           String?
+  phone           String?
+
+  // Metrics
+  followerCount   Int?
+  engagementRate  Decimal?
+  niche           String?
+
+  // Partnership
+  status          InfluencerStatus @default(PROSPECTING)
+  partnershipType PartnershipType?
+
+  // Compensation
+  rate            Decimal?
+  currency        String? @default("USD")
+  deliverables    String? // JSON
+
+  // Contract & Dates
+  contractDate    DateTime?
+  postDate        DateTime?
+  trackingLink    String?
+
+  // Performance
+  impressions     Int?
+  clicks          Int?
+  conversions     Int?
+
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum InfluencerStatus {
+  PROSPECTING
+  CONTACTED
+  NEGOTIATING
+  CONTRACTED
+  CONTENT_PENDING
+  POSTED
+  COMPLETED
+  DECLINED
+}
+
+enum PartnershipType {
+  GIFTED_PRODUCT
+  PAID_POST
+  AFFILIATE
+  BRAND_AMBASSADOR
+  EVENT_COLLABORATION
+}
+
+// User-generated content submissions
+model UGCSubmission {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  submitterName  String
+  submitterEmail String?
+  submitterHandle String?
+  platform       SocialPlatform?
+
+  contentType    ContentType
+  contentUrl     String
+  caption        String?
+
+  // Rights & Usage
+  rightsGranted  Boolean @default(false)
+  usageApproved  Boolean @default(false)
+
+  // Engagement
+  likes          Int?
+  comments       Int?
+  shares         Int?
+
+  status         UGCStatus @default(SUBMITTED)
+
+  // Compensation
+  compensationType String? // Gift, payment, etc.
+  compensationAmount Decimal?
+
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UGCStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  FEATURED
+  REJECTED
+  ARCHIVED
 }
