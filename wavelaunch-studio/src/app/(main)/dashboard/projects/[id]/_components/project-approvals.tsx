@@ -293,13 +293,15 @@ export function ProjectApprovals({
 
       {/* Empty State */}
       {approvals.length === 0 && (
-        <Card>
+        <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <CheckCircle className="h-16 w-16 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No approvals yet</h3>
-            <p className="text-muted-foreground text-center max-w-sm mb-6">
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <CheckCircle className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No approvals yet</h3>
+            <p className="text-sm text-muted-foreground text-center max-w-md mb-6">
               Request approval for brand assets, designs, or deliverables to
-              get feedback from your team
+              get feedback from your team. Track reviews and keep everyone aligned.
             </p>
             <RequestApprovalDialog
               projectId={projectId}

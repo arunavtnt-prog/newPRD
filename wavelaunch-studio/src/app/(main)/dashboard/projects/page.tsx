@@ -12,6 +12,7 @@ import { type ProjectRow } from "./_components/projects-table-columns";
 import { CreateProjectDialog } from "./_components/create-project-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { EmptyProjects } from "@/components/empty-states/empty-states";
 
 export default async function ProjectsPage() {
   // Check authentication
@@ -88,8 +89,12 @@ export default async function ProjectsPage() {
         </CreateProjectDialog>
       </div>
 
-      {/* Projects Table */}
-      <ProjectsDataTable data={tableData} />
+      {/* Projects Table or Empty State */}
+      {projects.length === 0 ? (
+        <EmptyProjects />
+      ) : (
+        <ProjectsDataTable data={tableData} />
+      )}
     </div>
   );
 }

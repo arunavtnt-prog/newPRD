@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckSquare } from "lucide-react";
+import { Clock, CheckCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface Approval {
@@ -40,10 +40,14 @@ export function ApprovalsQueue({ approvals }: ApprovalsQueueProps) {
       <CardContent>
         <div className="space-y-3">
           {pendingApprovals.length === 0 ? (
-            <div className="text-center py-8">
-              <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-sm text-muted-foreground">All caught up!</p>
-              <p className="text-xs text-muted-foreground mt-1">No pending approvals</p>
+            <div className="text-center py-8 px-4">
+              <div className="mb-3 rounded-full bg-muted p-3 inline-block">
+                <CheckCircle className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium mb-1">All caught up!</p>
+              <p className="text-xs text-muted-foreground">
+                No pending approvals at the moment
+              </p>
             </div>
           ) : (
             pendingApprovals.map((approval) => (
