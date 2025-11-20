@@ -8,6 +8,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectOverview } from "./project-overview";
+import { ProjectFiles } from "./project-files";
 import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
@@ -21,6 +22,7 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
   // Define available tabs based on project phases
   const phaseTabs = [
     { value: "overview", label: "Overview", icon: null },
+    { value: "files", label: "Files", icon: null, alwaysEnabled: true },
     { value: "discovery", label: "Discovery (M1)", icon: null, phaseKey: "DISCOVERY" },
     { value: "branding", label: "Branding (M2-M3)", icon: null, phaseKey: "BRANDING" },
     { value: "product", label: "Product (M4-M5)", icon: null, phaseKey: "PRODUCT_DEV" },
@@ -33,7 +35,7 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap">
-        {phaseTabs.map((tab) => {
+        {phaseTabs.map((tab: any) => {
           // Check if this phase exists and is unlocked
           const phase = phases.find((p: any) =>
             p.phaseName.toUpperCase().includes(tab.phaseKey || "")
@@ -42,14 +44,22 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
           const isCompleted = phase?.status === "COMPLETED";
           const isLocked = !phase || phase.status === "LOCKED";
 
+          // Some tabs are always enabled (overview, files)
+          const isDisabled = !tab.alwaysEnabled && tab.value !== "overview" && isLocked;
+
           return (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              disabled={tab.value !== "overview" && isLocked}
+              disabled={isDisabled}
               className="relative"
             >
               {tab.label}
+              {tab.value === "files" && project.files && project.files.length > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                  {project.files.length}
+                </Badge>
+              )}
               {isActive && (
                 <Badge variant="default" className="ml-2 h-5 px-1.5 text-xs">
                   Active
@@ -67,6 +77,10 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
 
       <TabsContent value="overview" className="space-y-6 mt-6">
         <ProjectOverview project={project} />
+      </TabsContent>
+
+      <TabsContent value="files" className="space-y-6 mt-6">
+        <ProjectFiles projectId={project.id} files={project.files || []} />
       </TabsContent>
 
       <TabsContent value="discovery" className="space-y-6 mt-6">

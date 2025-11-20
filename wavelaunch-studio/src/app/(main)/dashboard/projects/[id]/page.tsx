@@ -41,8 +41,14 @@ export default async function ProjectDetailPage({
         orderBy: { phaseOrder: "asc" },
       },
       files: {
-        orderBy: { uploadedAt: "desc" },
-        take: 10,
+        include: {
+          uploadedBy: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
       },
       assets: {
         orderBy: { createdAt: "desc" },
