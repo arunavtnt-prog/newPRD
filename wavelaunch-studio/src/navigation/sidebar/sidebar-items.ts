@@ -96,7 +96,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Notifications",
         url: "/dashboard/notifications",
         icon: Bell,
-        comingSoon: true,
       },
     ],
   },
