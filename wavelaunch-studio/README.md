@@ -18,15 +18,23 @@ Wavelaunch Studio is a comprehensive project management and asset generation pla
 # 1. Install dependencies
 npm install
 
-# 2. Set up database
-npm run db:push
+# 2. Set up PostgreSQL database
+# Option A: Use cloud PostgreSQL (Neon, Supabase) - recommended
+# Option B: Install PostgreSQL locally
+# Update .env.local with your DATABASE_URL
 
-# 3. Seed with sample data
+# 3. Initialize database
+npm run db:push
+# or: npm run db:migrate
+
+# 4. Seed with sample data
 npm run db:seed
 
-# 4. Start development server
+# 5. Start development server
 npm run dev
 ```
+
+> **Note:** See [POSTGRESQL_MIGRATION.md](./POSTGRESQL_MIGRATION.md) for detailed database setup instructions.
 
 ### Access the App
 
@@ -46,6 +54,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📖 Documentation
 
 - **[Getting Started Guide](./GETTING_STARTED.md)** - Complete setup guide for non-technical users
+- **[PostgreSQL Migration Guide](./POSTGRESQL_MIGRATION.md)** - Database setup and migration instructions
+- **[Setup Checklist](./SETUP_CHECKLIST.md)** - Quick 5-10 minute setup guide
 - **[Implementation Plan](../IMPLEMENTATION_PLAN.md)** - Technical architecture and development roadmap
 - **[PRD](../PRD.md)** - Product requirements document
 
@@ -71,7 +81,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4
 - **UI Components**: shadcn/ui (50+ components)
-- **Database**: SQLite (local dev) / PostgreSQL (production)
+- **Database**: PostgreSQL (with Prisma ORM)
 - **ORM**: Prisma
 - **Authentication**: NextAuth.js
 - **State Management**: Zustand, TanStack Query
@@ -94,10 +104,12 @@ npm run format       # Format code with Prettier
 
 ### Database
 ```bash
-npm run db:push      # Apply schema changes to database
-npm run db:generate  # Generate Prisma Client
-npm run db:studio    # Open Prisma Studio (database GUI)
-npm run db:seed      # Populate database with sample data
+npm run db:push             # Apply schema changes (development)
+npm run db:migrate          # Create migration (production-ready)
+npm run db:migrate:deploy   # Deploy migrations (production)
+npm run db:generate         # Generate Prisma Client
+npm run db:studio           # Open Prisma Studio (database GUI)
+npm run db:seed             # Populate database with sample data
 ```
 
 ---
