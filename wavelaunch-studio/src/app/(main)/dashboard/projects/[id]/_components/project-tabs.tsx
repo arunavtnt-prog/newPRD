@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectOverview } from "./project-overview";
 import { ProjectFiles } from "./project-files";
 import { ProjectApprovals } from "./project-approvals";
+import { DiscoveryWorkspace } from "./discovery-workspace";
 import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
@@ -114,9 +115,7 @@ export function ProjectTabs({
       </TabsContent>
 
       <TabsContent value="discovery" className="space-y-6 mt-6">
-        <div className="text-center py-12 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">Discovery phase content coming soon</p>
-        </div>
+        <DiscoveryWorkspace projectId={project.id} />
       </TabsContent>
 
       <TabsContent value="branding" className="space-y-6 mt-6">

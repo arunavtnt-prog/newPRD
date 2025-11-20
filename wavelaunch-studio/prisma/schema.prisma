@@ -77,6 +77,7 @@ model Project {
   comments      Comment[]
   activities    Activity[]
   questionnaire Questionnaire?
+  discovery     Discovery?
   colorPalettes ColorPalette[]
   taglines      Tagline[]
   assetGenerationJobs AssetGeneration[]
@@ -425,11 +426,15 @@ enum ActivityType {
   PHASE_COMPLETED
   FILE_UPLOADED
   APPROVAL_SUBMITTED
+  APPROVAL_APPROVED
+  APPROVAL_CHANGES_REQUESTED
   APPROVAL_DECIDED
   COMMENT_ADDED
   TEAM_MEMBER_ADDED
   TEAM_MEMBER_REMOVED
   ASSET_GENERATED
+  DISCOVERY_COMPLETED
+  DISCOVERY_UPDATED
 }
 
 // ========================================
@@ -471,4 +476,96 @@ model QuestionnaireResponse {
   updatedAt DateTime @updatedAt
 
   @@unique([questionnaireId, questionNumber])
+}
+
+// Discovery data (structured brand questionnaire responses)
+model Discovery {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Brand Basics
+  brandVision      String
+  brandMission     String
+  brandValues      String
+  brandPersonality String
+
+  // Product & Category
+  productCategory        ProductCategory
+  productDescription     String
+  productDifferentiators String
+  pricePoint             PricePoint
+
+  // Audience
+  targetAgeRange      String
+  targetGender        TargetGender
+  targetIncome        IncomeLevel
+  targetLocation      String
+  audiencePainPoints  String
+  audienceAspirations String
+
+  // Brand Voice & Aesthetic
+  toneOfVoice         ToneOfVoice
+  aestheticDirection  String
+  colorPreferences    String?
+  avoidColors         String?
+
+  // Inspiration & Competition
+  inspirationBrands        String
+  competitorBrands         String
+  differentiationStrategy  String
+
+  // Content & Marketing
+  contentPillars    String
+  socialMediaFocus  String
+  launchGoals       String
+
+  // Additional
+  mustHaveElements String?
+  avoidElements    String?
+  additionalNotes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductCategory {
+  FASHION
+  BEAUTY
+  FITNESS
+  LIFESTYLE
+  OTHER
+}
+
+enum PricePoint {
+  BUDGET
+  MID_RANGE
+  PREMIUM
+  LUXURY
+}
+
+enum TargetGender {
+  FEMALE
+  MALE
+  NON_BINARY
+  ALL
+}
+
+enum IncomeLevel {
+  UNDER_30K
+  30K_50K
+  50K_75K
+  75K_100K
+  OVER_100K
+}
+
+enum ToneOfVoice {
+  PLAYFUL
+  SOPHISTICATED
+  BOLD
+  MINIMAL
+  AUTHENTIC
+  LUXURIOUS
+  EDGY
+  WARM
 }
