@@ -110,6 +110,18 @@ export default async function ProjectDetailPage({
         },
         orderBy: { createdAt: "desc" },
       },
+      websiteConfig: true,
+      websitePages: {
+        include: {
+          sections: {
+            orderBy: { orderIndex: "asc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      copySnippets: {
+        orderBy: [{ purpose: "asc" }, { createdAt: "desc" }],
+      },
     },
   });
 

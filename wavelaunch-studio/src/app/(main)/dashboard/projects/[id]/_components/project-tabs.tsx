@@ -14,6 +14,7 @@ import { DiscoveryWorkspace } from "./discovery-workspace";
 import { BrandingWorkspace } from "./branding-workspace";
 import { ProductWorkspace } from "./product-workspace";
 import { ManufacturingWorkspace } from "./manufacturing-workspace";
+import { WebsiteWorkspace } from "./website-workspace";
 import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
@@ -162,9 +163,15 @@ export function ProjectTabs({
       </TabsContent>
 
       <TabsContent value="website" className="space-y-6 mt-6">
-        <div className="text-center py-12 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">Website phase content coming soon</p>
-        </div>
+        <WebsiteWorkspace
+          projectId={project.id}
+          projectName={project.projectName}
+          websiteConfig={project.websiteConfig}
+          websitePages={project.websitePages || []}
+          copySnippets={project.copySnippets || []}
+          colorPalettes={project.colorPalettes || []}
+          typography={project.typography}
+        />
       </TabsContent>
 
       <TabsContent value="marketing" className="space-y-6 mt-6">

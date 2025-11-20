@@ -84,6 +84,9 @@ model Project {
   productSKUs   ProductSKU[]
   vendors       Vendor[]
   purchaseOrders PurchaseOrder[]
+  websiteConfig  WebsiteConfig?
+  websitePages   WebsitePage[]
+  copySnippets   CopySnippet[]
   assetGenerationJobs AssetGeneration[]
 
   createdAt DateTime @default(now())
@@ -890,4 +893,162 @@ enum ToneOfVoice {
   LUXURIOUS
   EDGY
   WARM
+}
+
+// ========================================
+// WEBSITE BUILD
+// ========================================
+
+model WebsiteConfig {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Theme
+  themeName     String? // "Minimal", "Bold", "Elegant"
+  themePreview  String? // URL to theme preview
+  primaryColor  String? // From approved color palette
+  fontPrimary   String? // From typography
+  fontSecondary String?
+
+  // Domain & SEO
+  domain       String?
+  metaTitle    String?
+  metaDescription String?
+  favicon      String?
+
+  // Platform
+  platform     WebsitePlatform?
+  platformUrl  String? // Shopify/Webflow URL
+
+  // Status
+  status       WebsiteStatus @default(PLANNING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum WebsitePlatform {
+  SHOPIFY
+  WEBFLOW
+  WORDPRESS
+  CUSTOM
+}
+
+enum WebsiteStatus {
+  PLANNING
+  IN_DESIGN
+  IN_DEVELOPMENT
+  STAGING
+  LIVE
+}
+
+model WebsitePage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Page Info
+  pageName    String // "Home", "About", "Product", "Contact"
+  slug        String // "home", "about", "products/tshirt"
+  pageType    PageType
+  isPublished Boolean @default(false)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+
+  // Content
+  sections PageSection[]
+
+  orderIndex Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, slug])
+}
+
+enum PageType {
+  HOME
+  ABOUT
+  PRODUCT
+  COLLECTION
+  CONTACT
+  BLOG
+  CUSTOM
+}
+
+model PageSection {
+  id         String      @id @default(cuid())
+  pageId     String
+  page       WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  // Section Info
+  sectionName String // "Hero", "Features", "Testimonials"
+  sectionType SectionType
+  orderIndex  Int
+
+  // Content (stored as JSON)
+  content String @default("{}") // Flexible JSON structure
+
+  isVisible Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SectionType {
+  HERO
+  FEATURES
+  PRODUCT_GRID
+  TESTIMONIALS
+  CTA
+  FAQ
+  ABOUT_STORY
+  GALLERY
+  CONTACT_FORM
+  CUSTOM_HTML
+}
+
+model CopySnippet {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Context
+  purpose      CopyPurpose // "Homepage Hero", "Product Description"
+  context      String? // Additional context
+  targetLength Int? // Character count target
+
+  // Generated Copy
+  content    String
+  variation  Int     @default(1) // V1, V2, V3
+  isApproved Boolean @default(false)
+  isFavorite Boolean @default(false)
+
+  // Metadata
+  generatedBy String? // "AI" or user name
+  prompt      String? // Original prompt used
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CopyPurpose {
+  HOMEPAGE_HERO
+  HOMEPAGE_SUBTITLE
+  ABOUT_STORY
+  PRODUCT_HEADLINE
+  PRODUCT_DESCRIPTION
+  PRODUCT_BENEFITS
+  CTA_BUTTON
+  EMAIL_SUBJECT
+  EMAIL_BODY
+  SOCIAL_POST
+  AD_HEADLINE
+  AD_BODY
+  META_DESCRIPTION
+  CUSTOM
 }
