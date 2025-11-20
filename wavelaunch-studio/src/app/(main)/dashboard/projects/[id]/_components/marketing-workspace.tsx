@@ -9,11 +9,12 @@
 import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Megaphone, CheckSquare, Users, Star } from "lucide-react";
+import { Calendar, Megaphone, CheckSquare, Users, Star, Target } from "lucide-react";
+import { CampaignManager } from "./campaign-manager";
 import { ContentCalendar } from "./content-calendar";
 import { AdCreativeManager } from "./ad-creative-manager";
 import { LaunchChecklist } from "./launch-checklist";
-import { InfluencerTracker } from "./influencer-tracker";
+import { InfluencerTrackerFull } from "./influencer-tracker-full";
 
 interface MarketingWorkspaceProps {
   projectId: string;
@@ -113,8 +114,12 @@ export function MarketingWorkspace({
       </div>
 
       {/* Workspace Tabs */}
-      <Tabs defaultValue="calendar" className="space-y-6">
+      <Tabs defaultValue="campaigns" className="space-y-6">
         <TabsList>
+          <TabsTrigger value="campaigns">
+            <Target className="h-4 w-4 mr-2" />
+            Campaigns
+          </TabsTrigger>
           <TabsTrigger value="calendar">
             <Calendar className="h-4 w-4 mr-2" />
             Content Calendar
@@ -132,6 +137,13 @@ export function MarketingWorkspace({
             Influencers & UGC
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="campaigns" className="space-y-6">
+          <CampaignManager
+            projectId={projectId}
+            campaigns={campaigns}
+          />
+        </TabsContent>
 
         <TabsContent value="calendar" className="space-y-6">
           <ContentCalendar
@@ -157,7 +169,7 @@ export function MarketingWorkspace({
         </TabsContent>
 
         <TabsContent value="influencers" className="space-y-6">
-          <InfluencerTracker
+          <InfluencerTrackerFull
             projectId={projectId}
             influencers={influencers}
             ugcSubmissions={ugcSubmissions}

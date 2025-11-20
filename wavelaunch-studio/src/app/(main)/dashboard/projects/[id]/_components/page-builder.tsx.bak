@@ -1,7 +1,7 @@
 /**
- * Page Builder Component (Enhanced)
+ * Page Builder Component
  *
- * Manage website pages and sections with full CRUD
+ * Manage website pages and sections
  */
 
 "use client";
@@ -36,8 +36,6 @@ import {
   Trash2,
   GripVertical,
   Loader2,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -75,7 +73,6 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
   const [isPageDialogOpen, setIsPageDialogOpen] = React.useState(false);
   const [isSectionDialogOpen, setIsSectionDialogOpen] = React.useState(false);
   const [editingPage, setEditingPage] = React.useState<any>(null);
-  const [editingSection, setEditingSection] = React.useState<any>(null);
   const [selectedPageForSection, setSelectedPageForSection] =
     React.useState<any>(null);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -229,23 +226,11 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
   };
 
   const handleAddSection = (page: any) => {
-    setEditingSection(null);
     setSelectedPageForSection(page);
     setSectionFormData({
       sectionName: "",
       sectionType: "HERO",
       orderIndex: (page.sections || []).length,
-    });
-    setIsSectionDialogOpen(true);
-  };
-
-  const handleEditSection = (page: any, section: any) => {
-    setEditingSection(section);
-    setSelectedPageForSection(page);
-    setSectionFormData({
-      sectionName: section.sectionName,
-      sectionType: section.sectionType,
-      orderIndex: section.orderIndex,
     });
     setIsSectionDialogOpen(true);
   };
@@ -263,23 +248,22 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
     setIsSaving(true);
 
     try {
-      const url = editingSection
-        ? `/api/projects/${projectId}/pages/${selectedPageForSection.id}/sections/${editingSection.id}`
-        : `/api/projects/${projectId}/pages/${selectedPageForSection.id}/sections`;
-
-      const response = await fetch(url, {
-        method: editingSection ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(sectionFormData),
-      });
+      const response = await fetch(
+        `/api/projects/${projectId}/pages/${selectedPageForSection.id}/sections`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sectionFormData),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error("Failed to save section");
+        throw new Error("Failed to create section");
       }
 
       toast({
-        title: editingSection ? "Section updated" : "Section added",
-        description: `${sectionFormData.sectionName} has been saved`,
+        title: "Section added",
+        description: `${sectionFormData.sectionName} has been added to ${selectedPageForSection.pageName}`,
       });
 
       setIsSectionDialogOpen(false);
@@ -287,87 +271,11 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save section",
+        description: "Failed to add section",
         variant: "destructive",
       });
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleDeleteSection = async (page: any, section: any) => {
-    if (!confirm(`Are you sure you want to delete "${section.sectionName}"?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/projects/${projectId}/pages/${page.id}/sections/${section.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete section");
-      }
-
-      toast({
-        title: "Section deleted",
-        description: `${section.sectionName} has been removed`,
-      });
-
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete section",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReorderSection = async (
-    page: any,
-    section: any,
-    direction: "up" | "down"
-  ) => {
-    const sections = page.sections || [];
-    const currentIndex = section.orderIndex;
-    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-
-    if (newIndex < 0 || newIndex >= sections.length) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/projects/${projectId}/pages/${page.id}/sections/reorder`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sectionId: section.id,
-            newOrderIndex: newIndex,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to reorder section");
-      }
-
-      toast({
-        title: "Section reordered",
-      });
-
-      setTimeout(() => window.location.reload(), 500);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reorder section",
-        variant: "destructive",
-      });
     }
   };
 
@@ -458,13 +366,10 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
                   {(page.sections || []).length > 0 && (
                     <div className="border-t pt-4">
                       <div className="space-y-2">
-                        {page.sections.map((section: any, index: number) => {
+                        {page.sections.map((section: any) => {
                           const sectionType = SECTION_TYPES.find(
                             (t) => t.value === section.sectionType
                           );
-                          const isFirst = index === 0;
-                          const isLast = index === page.sections.length - 1;
-
                           return (
                             <div
                               key={section.id}
@@ -485,44 +390,6 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
                                   Hidden
                                 </Badge>
                               )}
-
-                              {/* Section Actions */}
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  disabled={isFirst}
-                                  onClick={() =>
-                                    handleReorderSection(page, section, "up")
-                                  }
-                                >
-                                  <ChevronUp className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  disabled={isLast}
-                                  onClick={() =>
-                                    handleReorderSection(page, section, "down")
-                                  }
-                                >
-                                  <ChevronDown className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditSection(page, section)}
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteSection(page, section)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
                             </div>
                           );
                         })}
@@ -675,13 +542,9 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
       <Dialog open={isSectionDialogOpen} onOpenChange={setIsSectionDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingSection ? "Edit Section" : "Add Section"}
-            </DialogTitle>
+            <DialogTitle>Add Section</DialogTitle>
             <DialogDescription>
-              {editingSection
-                ? `Edit section on ${selectedPageForSection?.pageName}`
-                : `Add a new section to ${selectedPageForSection?.pageName}`}
+              Add a new section to {selectedPageForSection?.pageName}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -735,10 +598,10 @@ export function PageBuilder({ projectId, websitePages }: PageBuilderProps) {
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {editingSection ? "Updating..." : "Adding..."}
+                  Adding...
                 </>
               ) : (
-                <>{editingSection ? "Update" : "Add"} Section</>
+                <>Add Section</>
               )}
             </Button>
           </DialogFooter>
