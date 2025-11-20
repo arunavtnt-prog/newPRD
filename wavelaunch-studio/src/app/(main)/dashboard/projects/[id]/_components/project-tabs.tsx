@@ -131,6 +131,11 @@ export function ProjectTabs({
         <BrandingWorkspace
           projectId={project.id}
           colorPalettes={project.colorPalettes || []}
+          logos={
+            project.files?.filter(
+              (f: any) => f.folder === "GENERATED_LOGOS" && !f.isDeleted
+            ) || []
+          }
         />
       </TabsContent>
 

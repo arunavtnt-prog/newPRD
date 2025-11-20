@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ColorPaletteGenerator } from "./color-palette-generator";
+import { LogoConcepts } from "./logo-concepts";
 
 interface BrandingWorkspaceProps {
   projectId: string;
@@ -145,16 +146,7 @@ export function BrandingWorkspace({
         </TabsContent>
 
         <TabsContent value="logos" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Logo Concepts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Logo concepts display coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <LogoConcepts projectId={projectId} logos={logos} />
         </TabsContent>
 
         <TabsContent value="typography" className="space-y-4 mt-6">
