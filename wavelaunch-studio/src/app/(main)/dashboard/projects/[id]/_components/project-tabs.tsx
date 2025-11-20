@@ -14,9 +14,19 @@ import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
   project: any; // We'll properly type this later
+  availableReviewers: Array<{
+    id: string;
+    fullName: string;
+    email: string;
+  }>;
+  currentUserId: string;
 }
 
-export function ProjectTabs({ project }: ProjectTabsProps) {
+export function ProjectTabs({
+  project,
+  availableReviewers,
+  currentUserId,
+}: ProjectTabsProps) {
   // Get phases grouped by milestone
   const phases = project.phases || [];
 
@@ -95,7 +105,12 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
       </TabsContent>
 
       <TabsContent value="approvals" className="space-y-6 mt-6">
-        <ProjectApprovals projectId={project.id} approvals={project.approvals || []} />
+        <ProjectApprovals
+          projectId={project.id}
+          approvals={project.approvals || []}
+          availableReviewers={availableReviewers}
+          currentUserId={currentUserId}
+        />
       </TabsContent>
 
       <TabsContent value="discovery" className="space-y-6 mt-6">

@@ -89,10 +89,28 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  // Fetch available reviewers for approval requests
+  const availableReviewers = await prisma.user.findMany({
+    where: {
+      role: { in: ["ADMIN", "TEAM_MEMBER"] },
+      isActive: true,
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+    },
+    orderBy: { fullName: "asc" },
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <ProjectHeader project={project} />
-      <ProjectTabs project={project} />
+      <ProjectTabs
+        project={project}
+        availableReviewers={availableReviewers}
+        currentUserId={session.user.id}
+      />
     </div>
   );
 }

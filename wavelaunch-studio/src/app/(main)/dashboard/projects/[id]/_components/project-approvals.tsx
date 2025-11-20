@@ -20,6 +20,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatDistanceToNow, isPast } from "date-fns";
+import { RequestApprovalDialog } from "./request-approval-dialog";
+import { ReviewApprovalDialog } from "./review-approval-dialog";
 
 interface Approval {
   id: string;
@@ -32,6 +34,7 @@ interface Approval {
     status: string;
     feedbackText: string | null;
     reviewedAt: Date | null;
+    reviewerId: string;
     reviewer: {
       fullName: string;
       avatarUrl: string | null;
@@ -42,11 +45,19 @@ interface Approval {
 interface ProjectApprovalsProps {
   projectId: string;
   approvals: Approval[];
+  availableReviewers: Array<{
+    id: string;
+    fullName: string;
+    email: string;
+  }>;
+  currentUserId: string;
 }
 
 export function ProjectApprovals({
   projectId,
   approvals,
+  availableReviewers,
+  currentUserId,
 }: ProjectApprovalsProps) {
   const pendingApprovals = approvals.filter((a) => a.status === "PENDING");
   const completedApprovals = approvals.filter(
@@ -100,10 +111,15 @@ export function ProjectApprovals({
             {pendingApprovals.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button disabled>
-          <Plus className="h-4 w-4 mr-2" />
-          Request Approval
-        </Button>
+        <RequestApprovalDialog
+          projectId={projectId}
+          availableReviewers={availableReviewers}
+        >
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Request Approval
+          </Button>
+        </RequestApprovalDialog>
       </div>
 
       {/* Pending Approvals */}
@@ -147,43 +163,85 @@ export function ProjectApprovals({
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Reviewers:</p>
                       <div className="space-y-2">
-                        {approval.reviewers.map((reviewer) => (
-                          <div
-                            key={reviewer.id}
-                            className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage
-                                  src={reviewer.reviewer.avatarUrl || undefined}
-                                />
-                                <AvatarFallback>
-                                  {reviewer.reviewer.fullName
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {reviewer.reviewer.fullName}
-                                </p>
-                                {reviewer.reviewedAt && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Reviewed{" "}
-                                    {formatDistanceToNow(
-                                      new Date(reviewer.reviewedAt),
-                                      { addSuffix: true }
+                        {approval.reviewers.map((reviewer) => {
+                          const isCurrentUser =
+                            reviewer.reviewerId === currentUserId;
+                          const canReview =
+                            isCurrentUser && reviewer.status === "PENDING";
+
+                          return (
+                            <div key={reviewer.id} className="space-y-2">
+                              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage
+                                      src={
+                                        reviewer.reviewer.avatarUrl || undefined
+                                      }
+                                    />
+                                    <AvatarFallback>
+                                      {reviewer.reviewer.fullName
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-medium">
+                                        {reviewer.reviewer.fullName}
+                                      </p>
+                                      {isCurrentUser && (
+                                        <Badge
+                                          variant="secondary"
+                                          className="h-4 px-1 text-[10px]"
+                                        >
+                                          You
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {reviewer.reviewedAt && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Reviewed{" "}
+                                        {formatDistanceToNow(
+                                          new Date(reviewer.reviewedAt),
+                                          { addSuffix: true }
+                                        )}
+                                      </p>
                                     )}
-                                  </p>
-                                )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">
+                                    {reviewer.status.replace("_", " ")}
+                                  </Badge>
+                                  {canReview && (
+                                    <ReviewApprovalDialog
+                                      approvalId={approval.id}
+                                      reviewerId={reviewer.reviewerId}
+                                      currentStatus={reviewer.status}
+                                    >
+                                      <Button size="sm" variant="default">
+                                        Review
+                                      </Button>
+                                    </ReviewApprovalDialog>
+                                  )}
+                                </div>
                               </div>
+                              {/* Show feedback if provided */}
+                              {reviewer.feedbackText && (
+                                <div className="ml-11 p-3 bg-muted/30 rounded-lg border-l-2 border-amber-500">
+                                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                                    Feedback:
+                                  </p>
+                                  <p className="text-sm">
+                                    {reviewer.feedbackText}
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                            <Badge variant="outline">
-                              {reviewer.status.replace("_", " ")}
-                            </Badge>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -243,10 +301,15 @@ export function ProjectApprovals({
               Request approval for brand assets, designs, or deliverables to
               get feedback from your team
             </p>
-            <Button disabled>
-              <Plus className="h-4 w-4 mr-2" />
-              Request First Approval
-            </Button>
+            <RequestApprovalDialog
+              projectId={projectId}
+              availableReviewers={availableReviewers}
+            >
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Request First Approval
+              </Button>
+            </RequestApprovalDialog>
           </CardContent>
         </Card>
       )}
