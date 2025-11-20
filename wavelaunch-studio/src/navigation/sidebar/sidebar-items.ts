@@ -49,7 +49,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Projects",
         url: "/dashboard/projects",
         icon: FolderKanban,
-        comingSoon: true,
       },
       {
         title: "Asset Generation",
