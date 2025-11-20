@@ -1,0 +1,81 @@
+/**
+ * Project Detail Page
+ *
+ * Shows detailed information about a specific project
+ */
+
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { redirect, notFound } from "next/navigation";
+import { ProjectHeader } from "./_components/project-header";
+import { ProjectTabs } from "./_components/project-tabs";
+
+interface ProjectDetailPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function ProjectDetailPage({
+  params,
+}: ProjectDetailPageProps) {
+  // Check authentication
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/auth/v2/login");
+  }
+
+  // Fetch project with all relations
+  const project = await prisma.project.findUnique({
+    where: { id: params.id },
+    include: {
+      leadStrategist: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          avatarUrl: true,
+        },
+      },
+      phases: {
+        orderBy: { phaseOrder: "asc" },
+      },
+      files: {
+        orderBy: { uploadedAt: "desc" },
+        take: 10,
+      },
+      assets: {
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      },
+      approvals: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      },
+      comments: {
+        include: {
+          author: {
+            select: {
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      },
+    },
+  });
+
+  // Handle not found
+  if (!project) {
+    notFound();
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <ProjectHeader project={project} />
+      <ProjectTabs project={project} />
+    </div>
+  );
+}
