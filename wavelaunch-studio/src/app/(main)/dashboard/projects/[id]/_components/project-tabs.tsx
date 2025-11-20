@@ -16,6 +16,7 @@ import { ProductWorkspace } from "./product-workspace";
 import { ManufacturingWorkspace } from "./manufacturing-workspace";
 import { WebsiteWorkspace } from "./website-workspace";
 import { MarketingWorkspace } from "./marketing-workspace";
+import { LaunchDashboard } from "./launch-dashboard";
 import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
@@ -189,9 +190,7 @@ export function ProjectTabs({
       </TabsContent>
 
       <TabsContent value="launch" className="space-y-6 mt-6">
-        <div className="text-center py-12 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">Launch phase content coming soon</p>
-        </div>
+        <LaunchDashboard project={project} />
       </TabsContent>
     </Tabs>
   );
