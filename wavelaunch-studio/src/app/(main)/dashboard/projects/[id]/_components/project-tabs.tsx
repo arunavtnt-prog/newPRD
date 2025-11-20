@@ -12,6 +12,7 @@ import { ProjectFiles } from "./project-files";
 import { ProjectApprovals } from "./project-approvals";
 import { DiscoveryWorkspace } from "./discovery-workspace";
 import { BrandingWorkspace } from "./branding-workspace";
+import { ProductWorkspace } from "./product-workspace";
 import { Badge } from "@/components/ui/badge";
 
 interface ProjectTabsProps {
@@ -143,9 +144,11 @@ export function ProjectTabs({
       </TabsContent>
 
       <TabsContent value="product" className="space-y-6 mt-6">
-        <div className="text-center py-12 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">Product development content coming soon</p>
-        </div>
+        <ProductWorkspace
+          projectId={project.id}
+          projectName={project.projectName}
+          productSKUs={project.productSKUs || []}
+        />
       </TabsContent>
 
       <TabsContent value="manufacturing" className="space-y-6 mt-6">

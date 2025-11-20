@@ -81,6 +81,7 @@ model Project {
   colorPalettes ColorPalette[]
   typography    Typography?
   taglines      Tagline[]
+  productSKUs   ProductSKU[]
   assetGenerationJobs AssetGeneration[]
 
   createdAt DateTime @default(now())
@@ -200,6 +201,9 @@ enum FileFolder {
   QUESTIONNAIRE_REFS
   GENERATED_LOGOS
   GENERATED_TEMPLATES
+  PROTOTYPE_PHOTOS
+  PRODUCT_SPECS
+  TECH_PACKS
 }
 
 model FileVersion {
@@ -352,6 +356,104 @@ model Tagline {
 }
 
 // ========================================
+// PRODUCT DEVELOPMENT
+// ========================================
+
+model ProductSKU {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  skuCode     String
+  productName String
+  description String?
+
+  // Variants
+  size  String?
+  color String?
+  material String?
+  style String?
+
+  // Pricing
+  wholesaleCost  Decimal?
+  retailPrice    Decimal?
+  targetMargin   Decimal?
+
+  // Specifications
+  dimensions String? // "L x W x H"
+  weight     String?
+  materials  String? // JSON array
+  careInstructions String?
+
+  // Production
+  moq              Int? // Minimum Order Quantity
+  leadTimeDays     Int?
+  supplierName     String?
+  supplierContact  String?
+
+  // Status
+  status ProductStatus @default(PLANNING)
+
+  // Relations
+  prototypes Prototype[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductStatus {
+  PLANNING
+  SAMPLING
+  APPROVED
+  IN_PRODUCTION
+  READY_TO_SHIP
+  DISCONTINUED
+}
+
+model Prototype {
+  id           String     @id @default(cuid())
+  productSKUId String
+  productSKU   ProductSKU @relation(fields: [productSKUId], references: [id], onDelete: Cascade)
+
+  version      String // "V1", "V2", etc.
+  sampleType   SampleType
+  description  String?
+
+  // Feedback
+  feedback     String?
+  issues       String? // JSON array
+  improvements String? // JSON array
+
+  // Status
+  status       PrototypeStatus @default(ORDERED)
+  orderedDate  DateTime?
+  receivedDate DateTime?
+  approvedDate DateTime?
+
+  // Images stored in Files table with category "PROTOTYPE"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SampleType {
+  FIRST_SAMPLE
+  REVISED_SAMPLE
+  PRE_PRODUCTION
+  PRODUCTION_RUN
+}
+
+enum PrototypeStatus {
+  ORDERED
+  IN_TRANSIT
+  RECEIVED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+// ========================================
 // APPROVAL WORKFLOWS
 // ========================================
 
@@ -484,6 +586,11 @@ enum ActivityType {
   ASSET_GENERATED
   DISCOVERY_COMPLETED
   DISCOVERY_UPDATED
+  PRODUCT_SKU_CREATED
+  PRODUCT_SKU_UPDATED
+  PROTOTYPE_CREATED
+  PROTOTYPE_UPDATED
+  PROTOTYPE_APPROVED
 }
 
 // ========================================

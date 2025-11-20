@@ -86,6 +86,14 @@ export default async function ProjectDetailPage({
         orderBy: { createdAt: "desc" },
       },
       typography: true,
+      productSKUs: {
+        include: {
+          prototypes: {
+            orderBy: { createdAt: "desc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
