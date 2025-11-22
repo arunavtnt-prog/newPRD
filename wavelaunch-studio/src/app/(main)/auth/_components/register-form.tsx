@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -11,9 +13,10 @@ import { Input } from "@/components/ui/input";
 
 const FormSchema = z
   .object({
+    fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
     email: z.string().email({ message: "Please enter a valid email address." }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string().min(6, { message: "Confirm Password must be at least 6 characters." }),
+    password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+    confirmPassword: z.string().min(8, { message: "Confirm Password must be at least 8 characters." }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
@@ -21,9 +24,13 @@ const FormSchema = z
   });
 
 export function RegisterForm() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      fullName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -31,13 +38,42 @@ export function RegisterForm() {
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: data.fullName,
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || 'Registration failed');
+        return;
+      }
+
+      toast.success('Account created!', {
+        description: 'Please check your email to verify your account.',
+      });
+
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        router.push('/auth/v2/login?registered=true');
+      }, 2000);
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error('An error occurred during registration');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -45,12 +81,39 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
+          name="fullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Doe"
+                  autoComplete="name"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...field} />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  disabled={isLoading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -63,7 +126,14 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input id="password" type="password" placeholder="••••••••" autoComplete="new-password" {...field} />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  disabled={isLoading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,6 +151,7 @@ export function RegisterForm() {
                   type="password"
                   placeholder="••••••••"
                   autoComplete="new-password"
+                  disabled={isLoading}
                   {...field}
                 />
               </FormControl>
@@ -88,8 +159,8 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
-          Register
+        <Button className="w-full" type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating account...' : 'Register'}
         </Button>
       </form>
     </Form>

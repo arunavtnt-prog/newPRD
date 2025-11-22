@@ -337,6 +337,94 @@ export const emailTemplates = {
     `;
     return baseTemplate(content, 'Your weekly digest from WaveLaunch Studio');
   },
+
+  emailVerification: ({
+    recipientName,
+    actionUrl,
+    expiresIn,
+  }: EmailTemplateProps) => {
+    const content = `
+      <h1>Verify Your Email Address ✉️</h1>
+      <p>Hi ${recipientName},</p>
+      <p>Welcome to WaveLaunch Studio! Please verify your email address to get started.</p>
+      <div class="info-box">
+        <p>Click the button below to verify your email address:</p>
+      </div>
+      ${actionUrl ? `<a href="${actionUrl}" class="button">Verify Email</a>` : ''}
+      <div class="divider"></div>
+      <p><strong>This link will expire in ${expiresIn || '24 hours'}.</strong></p>
+      <p>If you didn't create an account with WaveLaunch Studio, you can safely ignore this email.</p>
+    `;
+    return baseTemplate(content, 'Verify your email address');
+  },
+
+  passwordReset: ({
+    recipientName,
+    actionUrl,
+    expiresIn,
+  }: EmailTemplateProps) => {
+    const content = `
+      <h1>Reset Your Password 🔐</h1>
+      <p>Hi ${recipientName},</p>
+      <p>We received a request to reset your password. Click the button below to create a new password:</p>
+      ${actionUrl ? `<a href="${actionUrl}" class="button">Reset Password</a>` : ''}
+      <div class="divider"></div>
+      <p><strong>This link will expire in ${expiresIn || '1 hour'}.</strong></p>
+      <p>If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.</p>
+      <div class="info-box">
+        <p><strong>Security Tip:</strong> Never share your password with anyone. WaveLaunch Studio will never ask for your password via email.</p>
+      </div>
+    `;
+    return baseTemplate(content, 'Reset your password');
+  },
+
+  passwordResetSuccess: ({
+    recipientName,
+    actionUrl,
+  }: EmailTemplateProps) => {
+    const content = `
+      <h1>Password Changed Successfully ✅</h1>
+      <p>Hi ${recipientName},</p>
+      <p>Your password has been successfully changed.</p>
+      <div class="info-box">
+        <p>If you didn't make this change, please contact our support team immediately.</p>
+      </div>
+      ${actionUrl ? `<a href="${actionUrl}" class="button">Sign In</a>` : ''}
+      <div class="divider"></div>
+      <p>For your security, we recommend:</p>
+      <ul>
+        <li>Using a unique password for your WaveLaunch Studio account</li>
+        <li>Enabling two-factor authentication (coming soon)</li>
+        <li>Never sharing your password with anyone</li>
+      </ul>
+    `;
+    return baseTemplate(content, 'Password changed successfully');
+  },
+
+  welcomeEmail: ({
+    recipientName,
+    actionUrl,
+  }: EmailTemplateProps) => {
+    const content = `
+      <h1>Welcome to WaveLaunch Studio! 🎉</h1>
+      <p>Hi ${recipientName},</p>
+      <p>Thank you for joining WaveLaunch Studio! We're excited to help you bring your brand to life.</p>
+      <div class="info-box">
+        <h2>Get Started</h2>
+        <p>Here's what you can do next:</p>
+        <ul>
+          <li>📋 Complete your brand questionnaire</li>
+          <li>🎨 Explore our design tools</li>
+          <li>👥 Invite your team members</li>
+          <li>📁 Upload your reference files</li>
+        </ul>
+      </div>
+      ${actionUrl ? `<a href="${actionUrl}" class="button">Get Started</a>` : ''}
+      <div class="divider"></div>
+      <p>Need help? Our team is here to support you every step of the way.</p>
+    `;
+    return baseTemplate(content, 'Welcome to WaveLaunch Studio');
+  },
 };
 
 export type EmailTemplateType = keyof typeof emailTemplates;

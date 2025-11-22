@@ -1,17 +1,13 @@
 /**
  * File Upload API Route
  *
- * Handles file uploads for projects
- *
- * NOTE: This is a placeholder implementation for local development.
- * In production, this should integrate with AWS S3 or similar cloud storage.
+ * Handles file uploads for projects with Cloudinary integration
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { uploadToCloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 import { nanoid } from "nanoid";
 
 export async function POST(request: NextRequest) {
@@ -51,37 +47,99 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Generate unique filename
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileExtension = file.name.split(".").pop();
-    const uniqueFilename = `${nanoid()}.${fileExtension}`;
-
-    // In production, this would upload to S3
-    // For now, save locally for development
-    const uploadDir = join(process.cwd(), "public", "uploads", projectId);
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist, that's okay
+    // Validate file size (50MB max)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds 50MB limit" },
+        { status: 400 }
+      );
     }
 
-    const filePath = join(uploadDir, uniqueFilename);
-    await writeFile(filePath, buffer);
+    // Validate file type
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'video/mp4',
+      'video/quicktime',
+      'video/x-msvideo',
+    ];
 
-    // Create local URL (in production, this would be S3 URL)
-    const fileUrl = `/uploads/${projectId}/${uniqueFilename}`;
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: `File type ${file.type} is not supported` },
+        { status: 400 }
+      );
+    }
+
+    // Convert file to buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Upload to Cloudinary (or fallback to local if not configured)
+    let fileUrl: string;
+    let publicId: string;
+    let thumbnailUrl: string | null = null;
+
+    if (isCloudinaryConfigured()) {
+      try {
+        const uploadResult = await uploadToCloudinary(buffer, {
+          folder: `wavelaunch-studio/${projectId}/${folder || 'files'}`,
+          resourceType: 'auto',
+          publicId: `${nanoid()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`,
+        });
+
+        fileUrl = uploadResult.secureUrl;
+        publicId = uploadResult.publicId;
+        thumbnailUrl = uploadResult.thumbnailUrl || null;
+      } catch (error) {
+        console.error('Cloudinary upload failed:', error);
+        return NextResponse.json(
+          { error: 'Failed to upload file to cloud storage' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Fallback: local storage for development
+      console.warn('Cloudinary not configured, using local storage');
+      const { writeFile, mkdir } = await import('fs/promises');
+      const { join } = await import('path');
+
+      const fileExtension = file.name.split(".").pop();
+      const uniqueFilename = `${nanoid()}.${fileExtension}`;
+      const uploadDir = join(process.cwd(), "public", "uploads", projectId);
+
+      try {
+        await mkdir(uploadDir, { recursive: true });
+      } catch (error) {
+        // Directory might already exist
+      }
+
+      const filePath = join(uploadDir, uniqueFilename);
+      await writeFile(filePath, buffer);
+
+      fileUrl = `/uploads/${projectId}/${uniqueFilename}`;
+      publicId = uniqueFilename;
+    }
 
     // Save file record to database
     const fileRecord = await prisma.file.create({
       data: {
-        filename: uniqueFilename,
+        filename: publicId,
         originalFilename: file.name,
         fileType: file.type,
         fileSize: file.size,
-        s3Key: uniqueFilename, // In production, this would be S3 key
-        s3Url: fileUrl, // In production, this would be S3 URL
-        thumbnailS3Url: null, // TODO: Generate thumbnail for images
+        s3Key: publicId,
+        s3Url: fileUrl,
+        thumbnailS3Url: thumbnailUrl,
         projectId: projectId,
         folder: (folder as any) || "CREATOR_UPLOADS",
         uploadedById: session.user.id,

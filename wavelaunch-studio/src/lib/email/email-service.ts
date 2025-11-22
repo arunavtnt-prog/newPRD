@@ -129,45 +129,53 @@ class EmailService {
    * Send email via Resend
    */
   private async sendViaResend(options: EmailOptions): Promise<boolean> {
-    // Implementation for Resend API
-    // Install: npm install resend
-    // import { Resend } from 'resend';
-    // const resend = new Resend(process.env.RESEND_API_KEY);
+    try {
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
 
-    console.log("Sending via Resend:", options.subject);
+      const { data, error } = await resend.emails.send({
+        from: options.from || this.from,
+        to: Array.isArray(options.to) ? options.to : [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      });
 
-    // Placeholder - would use actual Resend SDK
-    // const { data, error } = await resend.emails.send({
-    //   from: options.from || this.from,
-    //   to: Array.isArray(options.to) ? options.to : [options.to],
-    //   subject: options.subject,
-    //   html: options.html,
-    // });
+      if (error) {
+        console.error('Resend error:', error);
+        return false;
+      }
 
-    return true;
+      console.log('Email sent via Resend:', data?.id);
+      return true;
+    } catch (error) {
+      console.error('Resend send error:', error);
+      return false;
+    }
   }
 
   /**
    * Send email via SendGrid
    */
   private async sendViaSendGrid(options: EmailOptions): Promise<boolean> {
-    // Implementation for SendGrid API
-    // Install: npm install @sendgrid/mail
-    // import sgMail from '@sendgrid/mail';
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    try {
+      const sgMail = await import('@sendgrid/mail');
+      sgMail.default.setApiKey(process.env.SENDGRID_API_KEY || '');
 
-    console.log("Sending via SendGrid:", options.subject);
+      await sgMail.default.send({
+        to: options.to,
+        from: options.from || this.from,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      });
 
-    // Placeholder - would use actual SendGrid SDK
-    // await sgMail.send({
-    //   to: options.to,
-    //   from: options.from || this.from,
-    //   subject: options.subject,
-    //   html: options.html,
-    //   text: options.text,
-    // });
-
-    return true;
+      console.log('Email sent via SendGrid');
+      return true;
+    } catch (error) {
+      console.error('SendGrid send error:', error);
+      return false;
+    }
   }
 
   /**
