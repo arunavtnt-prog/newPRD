@@ -1,3 +1,52 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Generate theme presets
 npm run generate:presets
 git add src/types/preferences/theme.ts
-npx lint-staged
+
+# Type checking
+echo "📘 Running TypeScript type check..."
+npm run type-check || {
+  echo "❌ TypeScript errors found. Please fix before committing."
+  exit 1
+}
+
+# Lint staged files
+echo "🔧 Running ESLint..."
+npx lint-staged || {
+  echo "❌ ESLint errors found. Please fix before committing."
+  exit 1
+}
+
+# Check for common schema errors
+echo "🗄️  Checking for schema errors..."
+if git diff --cached --name-only | grep -E '\.(ts|tsx)$' > /dev/null; then
+  # Check for CLIENT role usage
+  if git diff --cached | grep -E '"CLIENT"' > /dev/null; then
+    echo "⚠️  Warning: Found 'CLIENT' role. Should use 'CREATOR' instead."
+    echo "Continue anyway? (y/n)"
+    read -r response
+    if [ "$response" != "y" ]; then
+      exit 1
+    fi
+  fi
+
+  # Check for creatorEmail usage
+  if git diff --cached | grep -E 'creatorEmail' > /dev/null; then
+    echo "❌ Error: Found 'creatorEmail' field which doesn't exist in schema."
+    echo "Use project.team relationship to access user emails."
+    exit 1
+  fi
+
+  # Check for @/lib/prisma imports
+  if git diff --cached | grep -E "from ['\"]@/lib/prisma['\"]" > /dev/null; then
+    echo "❌ Error: Found import from '@/lib/prisma'."
+    echo "Use '@/lib/db' instead."
+    exit 1
+  fi
+fi
+
+echo "✅ All pre-commit checks passed!"
