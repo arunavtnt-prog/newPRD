@@ -80,7 +80,7 @@ export default async function AnalyticsPage() {
 
   // Calculate project status distribution
   const statusDistribution = projects.reduce(
-    (acc, project) => {
+    (acc: Record<string, number>, project) => {
       acc[project.status] = (acc[project.status] || 0) + 1;
       return acc;
     },
@@ -95,7 +95,7 @@ export default async function AnalyticsPage() {
     completedWithDates.length > 0
       ? Math.round(
         completedWithDates.reduce(
-          (sum, p) => sum + differenceInDays(p.updatedAt, p.startDate!),
+          (sum: number, p: any) => sum + differenceInDays(p.updatedAt, p.startDate!),
           0
         ) / completedWithDates.length
       )
@@ -103,7 +103,7 @@ export default async function AnalyticsPage() {
 
   // Calculate phase completion rates
   const phaseStats = projects.reduce(
-    (acc, project) => {
+    (acc: Record<string, { total: number; completed: number }>, project) => {
       project.phases.forEach((phase) => {
         const phaseName = phase.phaseName.split(":")[0]; // Get M0, M1, etc.
         if (!acc[phaseName]) {
