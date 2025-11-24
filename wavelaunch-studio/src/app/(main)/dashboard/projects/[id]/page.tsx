@@ -19,6 +19,9 @@ interface ProjectDetailPageProps {
 export default async function ProjectDetailPage({
   params,
 }: ProjectDetailPageProps) {
+  // Await params (Next.js 15+)
+  const { id } = await params;
+
   // Check authentication
   const session = await auth();
   if (!session?.user) {
@@ -27,7 +30,7 @@ export default async function ProjectDetailPage({
 
   // Fetch project with all relations
   const project = await prisma.project.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       leadStrategist: {
         select: {
@@ -71,7 +74,7 @@ export default async function ProjectDetailPage({
       },
       comments: {
         include: {
-          author: {
+          user: {
             select: {
               fullName: true,
               avatarUrl: true,
