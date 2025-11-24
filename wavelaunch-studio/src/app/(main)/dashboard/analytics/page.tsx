@@ -133,14 +133,14 @@ export default async function AnalyticsPage() {
 
   // Prepare data for charts
   const statusChartData = Object.entries(statusDistribution).map(
-    ([status, count]) => ({
+    ([status, count]: [string, number]) => ({
       status: status.replace("_", " "),
       count,
       percentage: Math.round((count / totalProjects) * 100),
     })
   );
 
-  const phaseChartData = Object.entries(phaseStats).map(([phase, stats]) => ({
+  const phaseChartData = Object.entries(phaseStats).map(([phase, stats]: [string, { total: number; completed: number }]) => ({
     phase,
     completionRate: Math.round((stats.completed / stats.total) * 100),
     total: stats.total,
