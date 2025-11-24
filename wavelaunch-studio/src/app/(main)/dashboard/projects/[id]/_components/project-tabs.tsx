@@ -18,6 +18,13 @@ import { WebsiteWorkspace } from "./website-workspace";
 import { MarketingWorkspace } from "./marketing-workspace";
 import { LaunchDashboard } from "./launch-dashboard";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CheckCircle2, Circle, Lock } from "lucide-react";
 
 interface ProjectTabsProps {
   project: any; // We'll properly type this later
@@ -41,67 +48,130 @@ export function ProjectTabs({
   const pendingApprovalsCount =
     project.approvals?.filter((a: any) => a.status === "PENDING").length || 0;
 
-  // Define available tabs based on project phases
-  const phaseTabs = [
-    { value: "overview", label: "Overview", icon: null },
-    { value: "files", label: "Files", icon: null, alwaysEnabled: true },
-    { value: "approvals", label: "Approvals", icon: null, alwaysEnabled: true },
-    { value: "discovery", label: "Discovery (M1)", icon: null, phaseKey: "DISCOVERY" },
-    { value: "branding", label: "Branding (M2-M3)", icon: null, phaseKey: "BRANDING" },
-    { value: "product", label: "Product (M4-M5)", icon: null, phaseKey: "PRODUCT_DEV" },
-    { value: "manufacturing", label: "Manufacturing (M6)", icon: null, phaseKey: "MANUFACTURING" },
-    { value: "website", label: "Website (M7)", icon: null, phaseKey: "WEBSITE" },
-    { value: "marketing", label: "Marketing (M8)", icon: null, phaseKey: "MARKETING" },
-    { value: "launch", label: "Launch", icon: null, phaseKey: "LAUNCH" },
+  // Group 1: Project Management tabs (always visible)
+  const projectTabs = [
+    { value: "overview", label: "Overview", alwaysEnabled: true },
+    { value: "files", label: "Files", alwaysEnabled: true },
+    { value: "approvals", label: "Approvals", alwaysEnabled: true },
+    { value: "launch", label: "Launch", alwaysEnabled: true },
   ];
 
-  return (
-    <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap">
-        {phaseTabs.map((tab: any) => {
-          // Check if this phase exists and is unlocked
-          const phase = phases.find((p: any) =>
-            p.phaseName.toUpperCase().includes(tab.phaseKey || "")
-          );
-          const isActive = phase?.status === "IN_PROGRESS";
-          const isCompleted = phase?.status === "COMPLETED";
-          const isLocked = !phase || phase.status === "LOCKED";
+  // Group 2: Milestone/Phase tabs (status-dependent)
+  const milestoneTabs = [
+    { value: "discovery", label: "Discovery (M1)", phaseKey: "DISCOVERY" },
+    { value: "branding", label: "Branding (M2-M3)", phaseKey: "BRANDING" },
+    { value: "product", label: "Product (M4-M5)", phaseKey: "PRODUCT_DEV" },
+    { value: "manufacturing", label: "Manufacturing (M6)", phaseKey: "MANUFACTURING" },
+    { value: "website", label: "Website (M7)", phaseKey: "WEBSITE" },
+    { value: "marketing", label: "Marketing (M8)", phaseKey: "MARKETING" },
+  ];
 
-          // Some tabs are always enabled (overview, files)
-          const isDisabled = !tab.alwaysEnabled && tab.value !== "overview" && isLocked;
+  // Helper function to render tab with tooltip
+  const renderTab = (tab: any) => {
+    // Check if this phase exists and is unlocked
+    const phase = phases.find((p: any) =>
+      p.phaseName.toUpperCase().includes(tab.phaseKey || "")
+    );
+    const isActive = phase?.status === "IN_PROGRESS";
+    const isCompleted = phase?.status === "COMPLETED";
+    const isLocked = !phase || phase.status === "LOCKED";
 
-          return (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              disabled={isDisabled}
-              className="relative"
-            >
+    // Some tabs are always enabled
+    const isDisabled = !tab.alwaysEnabled && isLocked;
+
+    // Build status text for tooltip
+    let statusText = "Not started";
+    if (isCompleted) statusText = "Completed";
+    else if (isActive) statusText = "In progress";
+    else if (isLocked && tab.phaseKey) statusText = "Locked";
+
+    // Determine border color based on status (subtle indicator)
+    let borderClass = "";
+    if (isActive) borderClass = "border-b-2 border-b-blue-500";
+    else if (isCompleted) borderClass = "border-b-2 border-b-green-500";
+
+    return (
+      <Tooltip key={tab.value}>
+        <TooltipTrigger asChild>
+          <TabsTrigger
+            value={tab.value}
+            disabled={isDisabled}
+            className={`relative ${borderClass}`}
+          >
+            <span className="flex items-center gap-2">
+              {/* Status icon (small, subtle) - only for milestone tabs */}
+              {tab.phaseKey && (
+                <>
+                  {isCompleted && (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                  )}
+                  {isActive && (
+                    <Circle className="h-3.5 w-3.5 text-blue-600 fill-blue-600" />
+                  )}
+                  {isLocked && (
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  {!isCompleted && !isActive && !isLocked && (
+                    <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </>
+              )}
+
               {tab.label}
+
+              {/* Keep useful counts - they're informational, not status */}
               {tab.value === "files" && project.files && project.files.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                   {project.files.length}
                 </Badge>
               )}
               {tab.value === "approvals" && pendingApprovalsCount > 0 && (
-                <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
                   {pendingApprovalsCount}
                 </Badge>
               )}
-              {isActive && (
-                <Badge variant="default" className="ml-2 h-5 px-1.5 text-xs">
-                  Active
-                </Badge>
-              )}
-              {isCompleted && (
-                <Badge variant="outline" className="ml-2 h-5 px-1.5 text-xs">
-                  Done
-                </Badge>
-              )}
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
+            </span>
+          </TabsTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className="text-sm">
+            <p className="font-medium">{tab.label}</p>
+            {tab.phaseKey && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Status: {statusText}
+              </p>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    );
+  };
+
+  return (
+    <Tabs defaultValue="overview" className="w-full">
+      <TooltipProvider>
+        <div className="space-y-3">
+          {/* Group 1: Project Management */}
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground px-1">
+              Project Management
+            </div>
+            <TabsList className="w-full justify-start h-auto gap-1">
+              {projectTabs.map(renderTab)}
+            </TabsList>
+          </div>
+
+          {/* Group 2: Milestones */}
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground px-1">
+              Milestones
+            </div>
+            <TabsList className="w-full justify-start overflow-x-auto h-auto gap-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+              {milestoneTabs.map(renderTab)}
+            </TabsList>
+          </div>
+        </div>
+      </TooltipProvider>
 
       <TabsContent value="overview" className="space-y-6 mt-6">
         <ProjectOverview project={project} />
