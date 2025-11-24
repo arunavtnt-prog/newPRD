@@ -16,9 +16,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BusinessPlanGenerator } from "./business-plan-generator";
 
 interface ProjectHeaderProps {
   project: {
+    id: string;
     projectName: string;
     creatorName: string;
     category: string;
@@ -28,6 +30,9 @@ interface ProjectHeaderProps {
     leadStrategist: {
       fullName: string;
     };
+    discovery?: {
+      id: string;
+    } | null;
   };
 }
 
@@ -82,8 +87,16 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <BusinessPlanGenerator
+              projectId={project.id}
+              projectName={project.projectName}
+              hasDiscoveryData={!!project.discovery}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem disabled>Edit project details</DropdownMenuItem>
           <DropdownMenuItem disabled>Manage team</DropdownMenuItem>
           <DropdownMenuSeparator />
