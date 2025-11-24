@@ -15,8 +15,9 @@ const favoriteSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; snippetId: string } }
+  { params }: { params: Promise<{  id: string; snippetId: string  }> }
 ) {
+  const { id, snippetId } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -24,8 +25,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const snippetId = params.snippetId;
+    const projectId = id;
+    const snippetId = snippetId;
 
     // Verify snippet exists and belongs to project
     const existingSnippet = await prisma.copySnippet.findFirst({

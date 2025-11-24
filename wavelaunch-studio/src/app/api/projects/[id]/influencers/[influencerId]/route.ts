@@ -33,16 +33,17 @@ const influencerUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; influencerId: string } }
+  { params }: { params: Promise<{  id: string; influencerId: string  }> }
 ) {
+  const { id, influencerId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const influencerId = params.influencerId;
+    const projectId = id;
+    const influencerId = influencerId;
 
     const existingInfluencer = await prisma.influencer.findFirst({
       where: {
@@ -110,16 +111,17 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; influencerId: string } }
+  { params }: { params: Promise<{  id: string; influencerId: string  }> }
 ) {
+  const { id, influencerId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const influencerId = params.influencerId;
+    const projectId = id;
+    const influencerId = influencerId;
 
     const influencer = await prisma.influencer.findFirst({
       where: {

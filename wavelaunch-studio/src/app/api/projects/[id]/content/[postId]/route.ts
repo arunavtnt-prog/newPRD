@@ -23,16 +23,17 @@ const contentPostUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; postId: string } }
+  { params }: { params: Promise<{  id: string; postId: string  }> }
 ) {
+  const { id, postId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const postId = params.postId;
+    const projectId = id;
+    const postId = postId;
 
     const existingPost = await prisma.contentPost.findFirst({
       where: {
@@ -87,16 +88,17 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; postId: string } }
+  { params }: { params: Promise<{  id: string; postId: string  }> }
 ) {
+  const { id, postId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const postId = params.postId;
+    const projectId = id;
+    const postId = postId;
 
     const post = await prisma.contentPost.findFirst({
       where: {

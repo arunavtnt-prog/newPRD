@@ -33,8 +33,9 @@ const prototypeSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; skuId: string } }
+  { params }: { params: Promise<{  id: string; skuId: string  }> }
 ) {
+  const { id, skuId } = await params;
   try {
     // Check authentication
     const session = await auth();

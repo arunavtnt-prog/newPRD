@@ -13,8 +13,9 @@ import { auth } from "@/lib/auth";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
@@ -23,7 +24,7 @@ export async function GET(
 
     // In a real implementation, fetch from database
     // const webhook = await prisma.webhookEndpoint.findUnique({
-    //   where: { id: params.id, createdBy: session.user.id },
+    //   where: { id: id, createdBy: session.user.id },
     //   include: {
     //     deliveries: {
     //       orderBy: { createdAt: 'desc' },
@@ -51,8 +52,9 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
@@ -64,7 +66,7 @@ export async function PATCH(
 
     // In a real implementation, update in database
     // const webhook = await prisma.webhookEndpoint.update({
-    //   where: { id: params.id, createdBy: session.user.id },
+    //   where: { id: id, createdBy: session.user.id },
     //   data: {
     //     ...(url && { url }),
     //     ...(events && { events }),
@@ -92,8 +94,9 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
@@ -102,7 +105,7 @@ export async function DELETE(
 
     // In a real implementation, delete from database
     // await prisma.webhookEndpoint.delete({
-    //   where: { id: params.id, createdBy: session.user.id },
+    //   where: { id: id, createdBy: session.user.id },
     // });
 
     return NextResponse.json({

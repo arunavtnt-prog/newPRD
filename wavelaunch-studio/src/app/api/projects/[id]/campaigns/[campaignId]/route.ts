@@ -26,16 +26,17 @@ const campaignUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; campaignId: string } }
+  { params }: { params: Promise<{  id: string; campaignId: string  }> }
 ) {
+  const { id, campaignId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const campaignId = params.campaignId;
+    const projectId = id;
+    const campaignId = campaignId;
 
     const existingCampaign = await prisma.campaign.findFirst({
       where: {
@@ -93,16 +94,17 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; campaignId: string } }
+  { params }: { params: Promise<{  id: string; campaignId: string  }> }
 ) {
+  const { id, campaignId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const campaignId = params.campaignId;
+    const projectId = id;
+    const campaignId = campaignId;
 
     const campaign = await prisma.campaign.findFirst({
       where: {

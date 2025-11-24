@@ -20,8 +20,9 @@ const pageUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; pageId: string } }
+  { params }: { params: Promise<{  id: string; pageId: string  }> }
 ) {
+  const { id, pageId } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -29,8 +30,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const pageId = params.pageId;
+    const projectId = id;
+    const pageId = pageId;
 
     // Verify page exists and belongs to project
     const existingPage = await prisma.websitePage.findFirst({
@@ -110,8 +111,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; pageId: string } }
+  { params }: { params: Promise<{  id: string; pageId: string  }> }
 ) {
+  const { id, pageId } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -119,8 +121,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const pageId = params.pageId;
+    const projectId = id;
+    const pageId = pageId;
 
     // Verify page exists and belongs to project
     const page = await prisma.websitePage.findFirst({

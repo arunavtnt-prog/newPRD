@@ -38,8 +38,9 @@ const updateSkuSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; skuId: string } }
+  { params }: { params: Promise<{  id: string; skuId: string  }> }
 ) {
+  const { id, skuId } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -109,8 +110,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; skuId: string } }
+  { params }: { params: Promise<{  id: string; skuId: string  }> }
 ) {
+  const { id, skuId } = await params;
   try {
     // Check authentication
     const session = await auth();
