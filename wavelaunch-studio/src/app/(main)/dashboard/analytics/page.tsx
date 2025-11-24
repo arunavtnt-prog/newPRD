@@ -120,7 +120,7 @@ export default async function AnalyticsPage() {
   );
 
   // Calculate team performance
-  const teamMetrics = users.map((user) => ({
+  const teamMetrics = users.map((user: any) => ({
     id: user.id,
     name: user.fullName,
     activeProjects: user.leadProjects.filter(
