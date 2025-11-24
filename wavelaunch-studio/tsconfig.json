@@ -38,6 +38,7 @@
   "exclude": [
     "node_modules",
     "playwright.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "prisma/seed.ts"
   ]
 }
