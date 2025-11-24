@@ -18,7 +18,7 @@ const reviewApprovalSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -27,7 +27,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const approvalId = params.id;
+    const { id: approvalId } = await params;
 
     // Parse and validate request body
     const body = await request.json();
@@ -52,12 +52,7 @@ export async function PATCH(
           },
         },
         reviewers: true,
-        requestedBy: {
-          select: {
-            id: true,
-            fullName: true,
-          },
-        },
+
       },
     });
 
