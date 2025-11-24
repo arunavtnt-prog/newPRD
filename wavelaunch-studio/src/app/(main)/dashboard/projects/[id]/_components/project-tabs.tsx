@@ -18,6 +18,13 @@ import { WebsiteWorkspace } from "./website-workspace";
 import { MarketingWorkspace } from "./marketing-workspace";
 import { LaunchDashboard } from "./launch-dashboard";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CheckCircle2, Circle, Lock } from "lucide-react";
 
 interface ProjectTabsProps {
   project: any; // We'll properly type this later
@@ -57,51 +64,89 @@ export function ProjectTabs({
 
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap">
-        {phaseTabs.map((tab: any) => {
-          // Check if this phase exists and is unlocked
-          const phase = phases.find((p: any) =>
-            p.phaseName.toUpperCase().includes(tab.phaseKey || "")
-          );
-          const isActive = phase?.status === "IN_PROGRESS";
-          const isCompleted = phase?.status === "COMPLETED";
-          const isLocked = !phase || phase.status === "LOCKED";
+      <TooltipProvider>
+        <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap gap-1">
+          {phaseTabs.map((tab: any) => {
+            // Check if this phase exists and is unlocked
+            const phase = phases.find((p: any) =>
+              p.phaseName.toUpperCase().includes(tab.phaseKey || "")
+            );
+            const isActive = phase?.status === "IN_PROGRESS";
+            const isCompleted = phase?.status === "COMPLETED";
+            const isLocked = !phase || phase.status === "LOCKED";
 
-          // Some tabs are always enabled (overview, files)
-          const isDisabled = !tab.alwaysEnabled && tab.value !== "overview" && isLocked;
+            // Some tabs are always enabled (overview, files)
+            const isDisabled = !tab.alwaysEnabled && tab.value !== "overview" && isLocked;
 
-          return (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              disabled={isDisabled}
-              className="relative"
-            >
-              {tab.label}
-              {tab.value === "files" && project.files && project.files.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
-                  {project.files.length}
-                </Badge>
-              )}
-              {tab.value === "approvals" && pendingApprovalsCount > 0 && (
-                <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
-                  {pendingApprovalsCount}
-                </Badge>
-              )}
-              {isActive && (
-                <Badge variant="default" className="ml-2 h-5 px-1.5 text-xs">
-                  Active
-                </Badge>
-              )}
-              {isCompleted && (
-                <Badge variant="outline" className="ml-2 h-5 px-1.5 text-xs">
-                  Done
-                </Badge>
-              )}
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
+            // Build status text for tooltip
+            let statusText = "Not started";
+            if (isCompleted) statusText = "Completed";
+            else if (isActive) statusText = "In progress";
+            else if (isLocked && tab.phaseKey) statusText = "Locked";
+
+            // Determine border color based on status (subtle indicator)
+            let borderClass = "";
+            if (isActive) borderClass = "border-b-2 border-b-blue-500";
+            else if (isCompleted) borderClass = "border-b-2 border-b-green-500";
+
+            return (
+              <Tooltip key={tab.value}>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value={tab.value}
+                    disabled={isDisabled}
+                    className={`relative ${borderClass}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {/* Status icon (small, subtle) */}
+                      {tab.phaseKey && (
+                        <>
+                          {isCompleted && (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                          )}
+                          {isActive && (
+                            <Circle className="h-3.5 w-3.5 text-blue-600 fill-blue-600" />
+                          )}
+                          {isLocked && (
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                          {!isCompleted && !isActive && !isLocked && (
+                            <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </>
+                      )}
+
+                      {tab.label}
+
+                      {/* Keep useful counts - they're informational, not status */}
+                      {tab.value === "files" && project.files && project.files.length > 0 && (
+                        <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                          {project.files.length}
+                        </Badge>
+                      )}
+                      {tab.value === "approvals" && pendingApprovalsCount > 0 && (
+                        <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
+                          {pendingApprovalsCount}
+                        </Badge>
+                      )}
+                    </span>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="text-sm">
+                    <p className="font-medium">{tab.label}</p>
+                    {tab.phaseKey && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Status: {statusText}
+                      </p>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </TabsList>
+      </TooltipProvider>
 
       <TabsContent value="overview" className="space-y-6 mt-6">
         <ProjectOverview project={project} />
