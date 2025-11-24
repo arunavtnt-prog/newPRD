@@ -65,7 +65,7 @@ export function ProjectTabs({
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TooltipProvider>
-        <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap gap-1">
+        <TabsList className="w-full justify-start overflow-x-auto h-auto gap-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           {phaseTabs.map((tab: any) => {
             // Check if this phase exists and is unlocked
             const phase = phases.find((p: any) =>
