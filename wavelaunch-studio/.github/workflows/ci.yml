@@ -1,0 +1,119 @@
+name: CI - Test & Lint
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wavelaunch_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment variables
+        run: |
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/wavelaunch_test" >> $GITHUB_ENV
+          echo "NEXTAUTH_SECRET=test-secret-key-for-ci" >> $GITHUB_ENV
+          echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
+          echo "CLOUDINARY_CLOUD_NAME=test-cloud" >> $GITHUB_ENV
+          echo "CLOUDINARY_API_KEY=test-key" >> $GITHUB_ENV
+          echo "CLOUDINARY_API_SECRET=test-secret" >> $GITHUB_ENV
+          echo "RESEND_API_KEY=test-resend-key" >> $GITHUB_ENV
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 1
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wavelaunch_test
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test:run
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wavelaunch_test
+
+      - name: Generate coverage report
+        run: npm run test:coverage
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wavelaunch_test
+
+      - name: Upload coverage to Codecov (Optional)
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment variables
+        run: |
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/wavelaunch_test" >> $GITHUB_ENV
+          echo "NEXTAUTH_SECRET=test-secret-key-for-ci" >> $GITHUB_ENV
+          echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 1
+
+      - name: Build application
+        run: npm run build

@@ -23,8 +23,18 @@ model User {
 
   // Profile
   avatarUrl   String?
+  companyName String? // For client users
   isActive    Boolean  @default(true)
   lastLoginAt DateTime?
+
+  // Email Verification
+  emailVerified            Boolean   @default(false)
+  emailVerificationToken   String?   @unique
+  emailVerificationExpires DateTime?
+
+  // Password Reset
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
 
   // Notification Preferences
   notifyEmailApprovals Boolean @default(true)
@@ -39,6 +49,8 @@ model User {
   notifications      Notification[]
   activities         Activity[]
   approvalReviews    ApprovalReviewer[]
+  sentMessages       Message[]     @relation("MessageSender")
+  receivedMessages   Message[]     @relation("MessageRecipient")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -796,6 +808,42 @@ enum ActivityType {
   INFLUENCER_POSTED
   UGC_SUBMITTED
   UGC_APPROVED
+}
+
+// Messaging system for client-admin communication
+model Message {
+  id        String  @id @default(cuid())
+  projectId String
+  subject   String?
+  content   String
+
+  // Sender
+  senderId String
+  sender   User   @relation("MessageSender", fields: [senderId], references: [id])
+
+  // Recipient (null for group messages)
+  recipientId String?
+  recipient   User?   @relation("MessageRecipient", fields: [recipientId], references: [id])
+
+  // File attachments (JSON array of file IDs)
+  attachments String @default("[]")
+
+  // Status
+  isRead    Boolean @default(false)
+  readAt    DateTime?
+  isDeleted Boolean @default(false)
+
+  // Threading
+  threadId  String? // Group messages by thread
+  parentId  String? // Reply to a specific message
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([threadId])
 }
 
 // ========================================
