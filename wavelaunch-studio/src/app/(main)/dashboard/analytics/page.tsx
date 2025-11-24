@@ -80,7 +80,7 @@ export default async function AnalyticsPage() {
 
   // Calculate project status distribution
   const statusDistribution = projects.reduce(
-    (acc: Record<string, number>, project) => {
+    (acc: Record<string, number>, project: any) => {
       acc[project.status] = (acc[project.status] || 0) + 1;
       return acc;
     },
@@ -103,8 +103,8 @@ export default async function AnalyticsPage() {
 
   // Calculate phase completion rates
   const phaseStats = projects.reduce(
-    (acc: Record<string, { total: number; completed: number }>, project) => {
-      project.phases.forEach((phase) => {
+    (acc: Record<string, { total: number; completed: number }>, project: any) => {
+      project.phases.forEach((phase: any) => {
         const phaseName = phase.phaseName.split(":")[0]; // Get M0, M1, etc.
         if (!acc[phaseName]) {
           acc[phaseName] = { total: 0, completed: 0 };
