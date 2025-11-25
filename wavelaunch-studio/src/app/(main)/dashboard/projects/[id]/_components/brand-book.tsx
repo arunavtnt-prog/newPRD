@@ -39,6 +39,7 @@ export function BrandBook({
   typography,
 }: BrandBookProps) {
   const [isGenerating, setIsGenerating] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState(false);
   const printRef = React.useRef<HTMLDivElement>(null);
 
   // Check what assets are ready
@@ -120,7 +121,28 @@ export function BrandBook({
   };
 
   const handleDownloadAssets = async () => {
-    toast.info("Asset package download coming soon");
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/brand-assets/download`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create brand assets package');
+      }
+
+      // Download the ZIP file
+      window.open(data.file.downloadUrl, '_blank');
+
+      toast.success('Brand assets package created! Opening download...');
+    } catch (error: any) {
+      console.error('Error downloading assets:', error);
+      toast.error(error.message || 'Failed to download brand assets');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const approvedPalette = colorPalettes.find((p) => p.isApproved);
@@ -140,10 +162,19 @@ export function BrandBook({
             variant="outline"
             size="sm"
             onClick={handleDownloadAssets}
-            disabled={!isComplete}
+            disabled={!isComplete || isDownloading}
           >
-            <Download className="h-4 w-4 mr-2" />
-            Download Assets
+            {isDownloading ? (
+              <>
+                <Sparkles className="h-4 w-4 mr-2 animate-spin" />
+                Creating Package...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download Assets
+              </>
+            )}
           </Button>
           <Button
             variant="default"

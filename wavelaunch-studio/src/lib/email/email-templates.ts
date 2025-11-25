@@ -394,7 +394,7 @@ export const emailTemplates = {
       <p>For your security, we recommend:</p>
       <ul>
         <li>Using a unique password for your WaveLaunch Studio account</li>
-        <li>Enabling two-factor authentication (coming soon)</li>
+        <li>Enabling two-factor authentication in your security settings</li>
         <li>Never sharing your password with anyone</li>
       </ul>
     `;

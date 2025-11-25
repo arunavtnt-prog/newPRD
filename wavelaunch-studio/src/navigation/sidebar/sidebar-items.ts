@@ -61,19 +61,16 @@ export const sidebarItems: NavGroup[] = [
         title: "Asset Generation",
         url: "/dashboard/asset-generation",
         icon: ImagePlus,
-        comingSoon: true,
       },
       {
         title: "Approvals Queue",
         url: "/dashboard/approvals",
         icon: CheckSquare,
-        comingSoon: true,
       },
       {
         title: "Files",
         url: "/dashboard/files",
         icon: FileText,
-        comingSoon: true,
       },
     ],
   },
@@ -90,7 +87,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Finance",
         url: "/dashboard/finance",
         icon: DollarSign,
-        comingSoon: true,
       },
       {
         title: "Notifications",

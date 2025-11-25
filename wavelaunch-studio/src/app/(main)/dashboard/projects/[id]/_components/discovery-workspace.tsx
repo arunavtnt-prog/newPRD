@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { DiscoveryQuestionnaire } from "./discovery-questionnaire";
 import { ReferenceUpload } from "./reference-upload";
+import { AudienceBuilder } from "./audience-builder";
+import { ToneVoiceSelector } from "./tone-voice-selector";
 
 interface DiscoveryWorkspaceProps {
   projectId: string;
@@ -155,29 +157,19 @@ export function DiscoveryWorkspace({
         </TabsContent>
 
         <TabsContent value="audience" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Target Audience Builder</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Audience builder coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <AudienceBuilder
+            projectId={projectId}
+            initialData={discoveryData}
+            discoveryData={discoveryData}
+          />
         </TabsContent>
 
         <TabsContent value="tone" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tone of Voice</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Tone selector coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <ToneVoiceSelector
+            projectId={projectId}
+            initialData={discoveryData}
+            discoveryData={discoveryData}
+          />
         </TabsContent>
       </Tabs>
     </div>
