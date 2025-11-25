@@ -99,13 +99,49 @@ export function AssetGenerationHub({ generationJobs, projects }: AssetGeneration
 
     setIsGenerating(true);
     try {
-      toast.info("Asset generation queued. This may take a few moments...");
+      toast.info("Generating assets. This may take a few moments...");
 
-      // Navigate to project page where generation happens
+      // Call appropriate API endpoint based on job type
+      let endpoint = "";
+      switch (jobType) {
+        case "LOGO_GEN":
+          endpoint = "/api/assets/generate-logo";
+          break;
+        case "TAGLINE_GEN":
+          endpoint = "/api/assets/generate-tagline";
+          break;
+        case "TEMPLATE_GEN":
+          endpoint = "/api/assets/generate-template";
+          break;
+        case "PALETTE_GEN":
+          // Color palette generation would be implemented here
+          toast.info("Color palette generation coming soon!");
+          return;
+        default:
+          toast.error("Unknown asset type");
+          return;
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: selectedProject }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Generation failed");
+      }
+
+      const data = await response.json();
+      toast.success(data.message || "Assets generated successfully!");
+
+      // Navigate to project to view generated assets
       router.push(`/dashboard/projects/${selectedProject}`);
-    } catch (error) {
+      router.refresh();
+    } catch (error: any) {
       console.error("Error:", error);
-      toast.error("Failed to queue generation");
+      toast.error(error.message || "Failed to generate assets");
     } finally {
       setIsGenerating(false);
     }

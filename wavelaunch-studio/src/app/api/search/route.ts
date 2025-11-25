@@ -1,7 +1,7 @@
 /**
- * Global Search API
+ * Global Search API Route
  *
- * GET /api/search - Search across projects, users, files, and more
+ * Searches across projects, files, approvals, and users
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,51 +10,64 @@ import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q")?.trim() || "";
-    const type = searchParams.get("type"); // project, user, file, approval
-    const status = searchParams.get("status");
-    const assignedTo = searchParams.get("assignedTo");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get("q");
+    const type = searchParams.get("type"); // all, projects, files, approvals, users
 
-    if (!query) {
-      return NextResponse.json({ results: [] });
+    if (!query || query.length < 2) {
+      return NextResponse.json(
+        { error: "Search query must be at least 2 characters" },
+        { status: 400 }
+      );
     }
 
-    const results = {
-      projects: [] as any[],
-      users: [] as any[],
-      files: [] as any[],
-      approvals: [] as any[],
+    const searchQuery = query.toLowerCase();
+    const isAdmin = session.user.role === "ADMIN" || session.user.role === "TEAM_MEMBER";
+
+    // Build results object
+    const searchResults: any = {
+      projects: [],
+      files: [],
+      approvals: [],
+      users: [],
     };
 
-    // Search projects
-    if (!type || type === "project") {
-      const projectWhere: any = {
+    // Search Projects
+    if (!type || type === "all" || type === "projects") {
+      const projectsWhere: any = {
         OR: [
-          { projectName: { contains: query, mode: "insensitive" } },
-          { creatorName: { contains: query, mode: "insensitive" } },
-          { category: { contains: query, mode: "insensitive" } },
+          { projectName: { contains: searchQuery, mode: "insensitive" } },
+          { creatorName: { contains: searchQuery, mode: "insensitive" } },
+          { category: { contains: searchQuery, mode: "insensitive" } },
         ],
       };
 
-      if (status) projectWhere.status = status;
-      if (assignedTo) projectWhere.leadStrategistId = assignedTo;
+      // Non-admins only see their assigned projects
+      if (!isAdmin) {
+        projectsWhere.AND = {
+          projectUsers: {
+            some: {
+              userId: session.user.id,
+            },
+          },
+        };
+      }
 
-      results.projects = await prisma.project.findMany({
-        where: projectWhere,
+      searchResults.projects = await prisma.project.findMany({
+        where: projectsWhere,
         select: {
           id: true,
           projectName: true,
           creatorName: true,
           category: true,
           status: true,
-          createdAt: true,
+          expectedLaunchDate: true,
           leadStrategist: {
             select: {
               id: true,
@@ -62,52 +75,43 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        take: limit,
+        take: 10,
         orderBy: { updatedAt: "desc" },
       });
     }
 
-    // Search users
-    if (!type || type === "user") {
-      results.users = await prisma.user.findMany({
-        where: {
-          OR: [
-            { fullName: { contains: query, mode: "insensitive" } },
-            { email: { contains: query, mode: "insensitive" } },
-            { department: { contains: query, mode: "insensitive" } },
-            { jobTitle: { contains: query, mode: "insensitive" } },
-          ],
-          isActive: true,
-        },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          role: true,
-          department: true,
-          jobTitle: true,
-          avatarUrl: true,
-        },
-        take: limit,
-      });
-    }
+    // Search Files
+    if (!type || type === "all" || type === "files") {
+      const filesWhere: any = {
+        isDeleted: false,
+        OR: [
+          { originalFilename: { contains: searchQuery, mode: "insensitive" } },
+          { folder: { contains: searchQuery, mode: "insensitive" } },
+        ],
+      };
 
-    // Search files
-    if (!type || type === "file") {
-      results.files = await prisma.file.findMany({
-        where: {
-          OR: [
-            { originalFilename: { contains: query, mode: "insensitive" } },
-            { filename: { contains: query, mode: "insensitive" } },
-          ],
-          isDeleted: false,
-        },
+      // Non-admins only see files from their projects
+      if (!isAdmin) {
+        filesWhere.AND = {
+          project: {
+            projectUsers: {
+              some: {
+                userId: session.user.id,
+              },
+            },
+          },
+        };
+      }
+
+      searchResults.files = await prisma.file.findMany({
+        where: filesWhere,
         select: {
           id: true,
           originalFilename: true,
           fileType: true,
           fileSize: true,
           folder: true,
+          downloadUrl: true,
           createdAt: true,
           project: {
             select: {
@@ -121,24 +125,34 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        take: limit,
+        take: 10,
         orderBy: { createdAt: "desc" },
       });
     }
 
-    // Search approvals
-    if (!type || type === "approval") {
-      results.approvals = await prisma.approval.findMany({
-        where: {
-          OR: [
-            { message: { contains: query, mode: "insensitive" } },
-            {
-              project: {
-                projectName: { contains: query, mode: "insensitive" },
+    // Search Approvals
+    if (!type || type === "all" || type === "approvals") {
+      const approvalsWhere: any = {
+        OR: [
+          { message: { contains: searchQuery, mode: "insensitive" } },
+        ],
+      };
+
+      // Non-admins only see approvals from their projects
+      if (!isAdmin) {
+        approvalsWhere.AND = {
+          project: {
+            projectUsers: {
+              some: {
+                userId: session.user.id,
               },
             },
-          ],
-        },
+          },
+        };
+      }
+
+      searchResults.approvals = await prisma.approval.findMany({
+        where: approvalsWhere,
         select: {
           id: true,
           message: true,
@@ -153,28 +167,57 @@ export async function GET(request: NextRequest) {
           },
           reviewers: {
             select: {
-              status: true,
+              reviewer: {
+                select: {
+                  fullName: true,
+                },
+              },
             },
           },
         },
-        take: limit,
+        take: 10,
         orderBy: { createdAt: "desc" },
       });
     }
 
-    const totalResults =
-      results.projects.length +
-      results.users.length +
-      results.files.length +
-      results.approvals.length;
+    // Search Users (Admin only)
+    if (isAdmin && (!type || type === "all" || type === "users")) {
+      searchResults.users = await prisma.user.findMany({
+        where: {
+          OR: [
+            { fullName: { contains: searchQuery, mode: "insensitive" } },
+            { email: { contains: searchQuery, mode: "insensitive" } },
+          ],
+          isActive: true,
+        },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          avatarUrl: true,
+        },
+        take: 10,
+      });
+    }
 
+    // Calculate total results
+    const totalResults =
+      searchResults.projects.length +
+      searchResults.files.length +
+      searchResults.approvals.length +
+      searchResults.users.length;
+
+    // Return in expected format
     return NextResponse.json({
-      results,
+      results: searchResults,
       totalResults,
-      query,
-    });
+    }, { status: 200 });
   } catch (error) {
-    console.error("Error searching:", error);
-    return NextResponse.json({ error: "Search failed" }, { status: 500 });
+    console.error("Error in global search:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
