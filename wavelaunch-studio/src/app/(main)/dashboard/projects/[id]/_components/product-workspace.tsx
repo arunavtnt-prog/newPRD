@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { SKUManagement } from "./sku-management";
 import { PrototypeTracking } from "./prototype-tracking";
+import { TechPackGenerator } from "./tech-pack-generator";
 
 interface ProductWorkspaceProps {
   projectId: string;
@@ -138,17 +139,7 @@ export function ProductWorkspace({
         </TabsContent>
 
         <TabsContent value="specs" className="space-y-4 mt-6">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                Tech Pack Generator
-              </h3>
-              <p className="text-muted-foreground text-center max-w-sm">
-                Detailed product specifications and tech packs coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <TechPackGenerator projectId={projectId} skus={productSKUs} />
         </TabsContent>
       </Tabs>
     </div>

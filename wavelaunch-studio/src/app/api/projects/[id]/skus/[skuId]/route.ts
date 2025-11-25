@@ -22,6 +22,8 @@ const updateSkuSchema = z.object({
   targetMargin: z.number().nullable().optional(),
   dimensions: z.string().nullable().optional(),
   weight: z.string().nullable().optional(),
+  materials: z.string().nullable().optional(),
+  careInstructions: z.string().nullable().optional(),
   moq: z.number().int().nullable().optional(),
   leadTimeDays: z.number().int().nullable().optional(),
   supplierName: z.string().nullable().optional(),
