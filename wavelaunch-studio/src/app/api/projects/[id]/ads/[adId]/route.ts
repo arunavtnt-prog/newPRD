@@ -29,16 +29,17 @@ const adCreativeUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; adId: string } }
+  { params }: { params: Promise<{  id: string; adId: string  }> }
 ) {
+  const { id, adId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const adId = params.adId;
+    const projectId = id;
+    const adId = adId;
 
     const existingAd = await prisma.adCreative.findFirst({
       where: {
@@ -93,16 +94,17 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; adId: string } }
+  { params }: { params: Promise<{  id: string; adId: string  }> }
 ) {
+  const { id, adId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const adId = params.adId;
+    const projectId = id;
+    const adId = adId;
 
     const existingAd = await prisma.adCreative.findFirst({
       where: {

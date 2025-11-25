@@ -15,16 +15,17 @@ const statusUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; poId: string } }
+  { params }: { params: Promise<{  id: string; poId: string  }> }
 ) {
+  const { id, poId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const poId = params.poId;
+    const projectId = id;
+    const poId = poId;
 
     const existingPO = await prisma.purchaseOrder.findFirst({
       where: {

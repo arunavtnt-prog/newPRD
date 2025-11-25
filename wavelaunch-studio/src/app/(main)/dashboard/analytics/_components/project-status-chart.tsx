@@ -61,7 +61,7 @@ export function ProjectStatusChart({ data }: ProjectStatusChartProps) {
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={COLORS[entry.status.toUpperCase().replace(/ /g, "_")] || "#94a3b8"}
+                  fill={(COLORS as any)[entry.status.toUpperCase().replace(/ /g, "_")] || "#94a3b8"}
                 />
               ))}
             </Pie>

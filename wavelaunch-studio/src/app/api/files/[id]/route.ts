@@ -12,7 +12,7 @@ import { join } from "path";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -21,7 +21,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const fileId = params.id;
+    const { id: fileId } = await params;
 
     // Fetch file record
     const file = await prisma.file.findUnique({

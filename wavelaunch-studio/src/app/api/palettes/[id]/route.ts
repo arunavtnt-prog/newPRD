@@ -10,8 +10,9 @@ import { prisma } from "@/lib/db";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -19,7 +20,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const paletteId = params.id;
+    const paletteId = id;
 
     // Fetch palette
     const palette = await prisma.colorPalette.findUnique({

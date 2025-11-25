@@ -10,8 +10,9 @@ import { prisma } from "@/lib/db";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -19,7 +20,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const logoId = params.id;
+    const logoId = id;
 
     // Fetch logo file
     const logo = await prisma.file.findUnique({

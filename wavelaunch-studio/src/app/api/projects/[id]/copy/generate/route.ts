@@ -134,8 +134,9 @@ Example format:
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -143,7 +144,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
+    const projectId = id;
 
     // Verify project exists and fetch brand data
     const project = await prisma.project.findUnique({

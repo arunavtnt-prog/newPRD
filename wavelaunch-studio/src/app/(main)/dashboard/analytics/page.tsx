@@ -54,7 +54,7 @@ export default async function AnalyticsPage() {
       isActive: true,
     },
     include: {
-      leadingProjects: {
+      leadProjects: {
         select: {
           id: true,
           status: true,
@@ -68,11 +68,11 @@ export default async function AnalyticsPage() {
   // Calculate project metrics
   const totalProjects = projects.length;
   const activeProjects = projects.filter(
-    (p) => !["COMPLETED", "ARCHIVED"].includes(p.status)
+    (p: any) => !["COMPLETED", "ARCHIVED"].includes(p.status)
   ).length;
-  const completedProjects = projects.filter((p) => p.status === "COMPLETED").length;
+  const completedProjects = projects.filter((p: any) => p.status === "COMPLETED").length;
   const onTimeProjects = projects.filter(
-    (p) =>
+    (p: any) =>
       p.status === "COMPLETED" &&
       p.expectedLaunchDate &&
       p.updatedAt <= p.expectedLaunchDate
@@ -80,7 +80,7 @@ export default async function AnalyticsPage() {
 
   // Calculate project status distribution
   const statusDistribution = projects.reduce(
-    (acc, project) => {
+    (acc: Record<string, number>, project: any) => {
       acc[project.status] = (acc[project.status] || 0) + 1;
       return acc;
     },
@@ -89,22 +89,22 @@ export default async function AnalyticsPage() {
 
   // Calculate average time to launch for completed projects
   const completedWithDates = projects.filter(
-    (p) => p.status === "COMPLETED" && p.startDate
+    (p: any) => p.status === "COMPLETED" && p.startDate
   );
   const avgTimeToLaunch =
     completedWithDates.length > 0
       ? Math.round(
-          completedWithDates.reduce(
-            (sum, p) => sum + differenceInDays(p.updatedAt, p.startDate!),
-            0
-          ) / completedWithDates.length
-        )
+        completedWithDates.reduce(
+          (sum: number, p: any) => sum + differenceInDays(p.updatedAt, p.startDate!),
+          0
+        ) / completedWithDates.length
+      )
       : 0;
 
   // Calculate phase completion rates
   const phaseStats = projects.reduce(
-    (acc, project) => {
-      project.phases.forEach((phase) => {
+    (acc: Record<string, { total: number; completed: number }>, project: any) => {
+      project.phases.forEach((phase: any) => {
         const phaseName = phase.phaseName.split(":")[0]; // Get M0, M1, etc.
         if (!acc[phaseName]) {
           acc[phaseName] = { total: 0, completed: 0 };
@@ -120,27 +120,27 @@ export default async function AnalyticsPage() {
   );
 
   // Calculate team performance
-  const teamMetrics = users.map((user) => ({
+  const teamMetrics = users.map((user: any) => ({
     id: user.id,
     name: user.fullName,
-    activeProjects: user.leadingProjects.filter(
-      (p) => !["COMPLETED", "ARCHIVED"].includes(p.status)
+    activeProjects: user.leadProjects.filter(
+      (p: any) => !["COMPLETED", "ARCHIVED"].includes(p.status)
     ).length,
-    completedProjects: user.leadingProjects.filter((p) => p.status === "COMPLETED")
+    completedProjects: user.leadProjects.filter((p: any) => p.status === "COMPLETED")
       .length,
-    totalProjects: user.leadingProjects.length,
+    totalProjects: user.leadProjects.length,
   }));
 
   // Prepare data for charts
   const statusChartData = Object.entries(statusDistribution).map(
-    ([status, count]) => ({
+    ([status, count]: [string, number]) => ({
       status: status.replace("_", " "),
       count,
       percentage: Math.round((count / totalProjects) * 100),
     })
   );
 
-  const phaseChartData = Object.entries(phaseStats).map(([phase, stats]) => ({
+  const phaseChartData = Object.entries(phaseStats).map(([phase, stats]: [string, { total: number; completed: number }]) => ({
     phase,
     completionRate: Math.round((stats.completed / stats.total) * 100),
     total: stats.total,

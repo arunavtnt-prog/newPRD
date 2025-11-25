@@ -38,8 +38,9 @@ const skuSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -47,7 +48,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
+    const projectId = id;
 
     // Verify project exists
     const project = await prisma.project.findUnique({
@@ -107,8 +108,9 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -116,7 +118,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
+    const projectId = id;
 
     // Fetch SKUs
     const skus = await prisma.productSKU.findMany({

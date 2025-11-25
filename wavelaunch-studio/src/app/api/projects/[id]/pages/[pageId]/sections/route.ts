@@ -30,8 +30,9 @@ const sectionSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; pageId: string } }
+  { params }: { params: Promise<{  id: string; pageId: string  }> }
 ) {
+  const { id, pageId } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -39,8 +40,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const pageId = params.pageId;
+    const projectId = id;
+    const pageId = pageId;
 
     // Verify page exists and belongs to project
     const page = await prisma.websitePage.findFirst({

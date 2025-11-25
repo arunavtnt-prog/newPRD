@@ -10,8 +10,9 @@ import { prisma } from "@/lib/db";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; typographyId: string } }
+  { params }: { params: Promise<{  id: string; typographyId: string  }> }
 ) {
+  const { id, typographyId } = await params;
   try {
     // Check authentication
     const session = await auth();

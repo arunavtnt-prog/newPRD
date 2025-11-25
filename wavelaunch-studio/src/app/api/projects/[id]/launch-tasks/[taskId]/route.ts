@@ -21,16 +21,17 @@ const launchTaskUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; taskId: string } }
+  { params }: { params: Promise<{  id: string; taskId: string  }> }
 ) {
+  const { id, taskId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const taskId = params.taskId;
+    const projectId = id;
+    const taskId = taskId;
 
     const existingTask = await prisma.launchTask.findFirst({
       where: {

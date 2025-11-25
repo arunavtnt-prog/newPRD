@@ -24,8 +24,9 @@ const updateVendorSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; vendorId: string } }
+  { params }: { params: Promise<{  id: string; vendorId: string  }> }
 ) {
+  const { id, vendorId } = await params;
   try {
     // Check authentication
     const session = await auth();
@@ -95,8 +96,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; vendorId: string } }
+  { params }: { params: Promise<{  id: string; vendorId: string  }> }
 ) {
+  const { id, vendorId } = await params;
   try {
     // Check authentication
     const session = await auth();

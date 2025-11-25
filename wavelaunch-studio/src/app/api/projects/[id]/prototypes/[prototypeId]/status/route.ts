@@ -22,8 +22,9 @@ const statusSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; prototypeId: string } }
+  { params }: { params: Promise<{  id: string; prototypeId: string  }> }
 ) {
+  const { id, prototypeId } = await params;
   try {
     // Check authentication
     const session = await auth();

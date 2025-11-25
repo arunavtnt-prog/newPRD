@@ -11,8 +11,9 @@ import { prisma } from "@/lib/db";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
@@ -20,7 +21,7 @@ export async function PATCH(
     }
 
     const notification = await prisma.notification.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!notification || notification.userId !== session.user.id) {
@@ -28,7 +29,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.notification.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { isRead: true },
     });
 
@@ -44,8 +45,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{  id: string  }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
@@ -53,7 +55,7 @@ export async function DELETE(
     }
 
     const notification = await prisma.notification.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!notification || notification.userId !== session.user.id) {
@@ -61,7 +63,7 @@ export async function DELETE(
     }
 
     await prisma.notification.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ success: true });

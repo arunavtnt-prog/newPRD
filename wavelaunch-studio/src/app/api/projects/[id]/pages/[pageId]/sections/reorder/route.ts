@@ -16,16 +16,17 @@ const reorderSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; pageId: string } }
+  { params }: { params: Promise<{  id: string; pageId: string  }> }
 ) {
+  const { id, pageId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const pageId = params.pageId;
+    const projectId = id;
+    const pageId = pageId;
 
     // Verify page exists
     const page = await prisma.websitePage.findFirst({

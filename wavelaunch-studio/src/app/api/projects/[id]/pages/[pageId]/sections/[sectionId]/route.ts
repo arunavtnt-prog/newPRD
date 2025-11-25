@@ -30,17 +30,18 @@ const sectionUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; pageId: string; sectionId: string } }
+  { params }: { params: Promise<{  id: string; pageId: string; sectionId: string  }> }
 ) {
+  const { id, pageId, sectionId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const pageId = params.pageId;
-    const sectionId = params.sectionId;
+    const projectId = id;
+    const pageId = pageId;
+    const sectionId = sectionId;
 
     // Verify section exists
     const existingSection = await prisma.pageSection.findFirst({
@@ -100,17 +101,18 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; pageId: string; sectionId: string } }
+  { params }: { params: Promise<{  id: string; pageId: string; sectionId: string  }> }
 ) {
+  const { id, pageId, sectionId } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const pageId = params.pageId;
-    const sectionId = params.sectionId;
+    const projectId = id;
+    const pageId = pageId;
+    const sectionId = sectionId;
 
     const existingSection = await prisma.pageSection.findFirst({
       where: {
