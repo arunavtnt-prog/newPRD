@@ -16,11 +16,13 @@ import {
   MessageCircle,
   FileText,
   Image as ImageIcon,
+  Lightbulb,
 } from "lucide-react";
 import { DiscoveryQuestionnaire } from "./discovery-questionnaire";
 import { ReferenceUpload } from "./reference-upload";
 import { AudienceBuilder } from "./audience-builder";
 import { ToneVoiceSelector } from "./tone-voice-selector";
+import { BrandNamingGenerator } from "./brand-naming-generator";
 
 interface DiscoveryWorkspaceProps {
   projectId: string;
@@ -135,6 +137,10 @@ export function DiscoveryWorkspace({
             <ImageIcon className="h-4 w-4 mr-2" />
             References
           </TabsTrigger>
+          <TabsTrigger value="naming">
+            <Lightbulb className="h-4 w-4 mr-2" />
+            Naming
+          </TabsTrigger>
           <TabsTrigger value="audience">
             <Users className="h-4 w-4 mr-2" />
             Audience
@@ -154,6 +160,13 @@ export function DiscoveryWorkspace({
 
         <TabsContent value="references" className="space-y-4 mt-6">
           <ReferenceUpload projectId={projectId} references={references} />
+        </TabsContent>
+
+        <TabsContent value="naming" className="space-y-4 mt-6">
+          <BrandNamingGenerator
+            projectId={projectId}
+            discoveryData={discoveryData}
+          />
         </TabsContent>
 
         <TabsContent value="audience" className="space-y-4 mt-6">
