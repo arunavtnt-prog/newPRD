@@ -15,16 +15,16 @@ datasource db {
 // ========================================
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String
   fullName     String
-  role         UserRole  @default(TEAM_MEMBER)
+  role         UserRole @default(TEAM_MEMBER)
 
   // Profile
   avatarUrl   String?
   companyName String? // For client users
-  isActive    Boolean  @default(true)
+  isActive    Boolean   @default(true)
   lastLoginAt DateTime?
 
   // Email Verification
@@ -43,14 +43,14 @@ model User {
 
   // Relations
   projectMemberships ProjectUser[]
-  leadProjects       Project[]     @relation("ProjectLead")
+  leadProjects       Project[]          @relation("ProjectLead")
   uploadedFiles      File[]
   comments           Comment[]
   notifications      Notification[]
   activities         Activity[]
   approvalReviews    ApprovalReviewer[]
-  sentMessages       Message[]     @relation("MessageSender")
-  receivedMessages   Message[]     @relation("MessageRecipient")
+  sentMessages       Message[]          @relation("MessageSender")
+  receivedMessages   Message[]          @relation("MessageRecipient")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -81,30 +81,30 @@ model Project {
   leadStrategist   User   @relation("ProjectLead", fields: [leadStrategistId], references: [id])
 
   // Relations
-  phases        ProjectPhase[]
-  team          ProjectUser[]
-  files         File[]
-  assets        Asset[]
-  approvals     Approval[]
-  comments      Comment[]
-  activities    Activity[]
-  questionnaire Questionnaire?
-  discovery     Discovery?
-  colorPalettes ColorPalette[]
-  typography    Typography?
-  taglines      Tagline[]
-  productSKUs   ProductSKU[]
-  vendors       Vendor[]
-  purchaseOrders PurchaseOrder[]
-  websiteConfig  WebsiteConfig?
-  websitePages   WebsitePage[]
-  copySnippets   CopySnippet[]
-  campaigns      Campaign[]
-  contentPosts   ContentPost[]
-  adCreatives    AdCreative[]
-  launchTasks    LaunchTask[]
-  influencers    Influencer[]
-  ugcSubmissions UGCSubmission[]
+  phases              ProjectPhase[]
+  team                ProjectUser[]
+  files               File[]
+  assets              Asset[]
+  approvals           Approval[]
+  comments            Comment[]
+  activities          Activity[]
+  questionnaire       Questionnaire?
+  discovery           Discovery?
+  colorPalettes       ColorPalette[]
+  typography          Typography?
+  taglines            Tagline[]
+  productSKUs         ProductSKU[]
+  vendors             Vendor[]
+  purchaseOrders      PurchaseOrder[]
+  websiteConfig       WebsiteConfig?
+  websitePages        WebsitePage[]
+  copySnippets        CopySnippet[]
+  campaigns           Campaign[]
+  contentPosts        ContentPost[]
+  adCreatives         AdCreative[]
+  launchTasks         LaunchTask[]
+  influencers         Influencer[]
+  ugcSubmissions      UGCSubmission[]
   assetGenerationJobs AssetGeneration[]
 
   createdAt DateTime @default(now())
@@ -133,12 +133,12 @@ enum ProjectStatus {
 }
 
 model ProjectPhase {
-  id         String      @id @default(cuid())
-  projectId  String
-  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  phaseName  String      // M0: Onboarding, M1: Discovery, etc.
-  phaseOrder Int         // 0, 1, 2, 3, 4, 5, 6, 7
+  phaseName  String // M0: Onboarding, M1: Discovery, etc.
+  phaseOrder Int // 0, 1, 2, 3, 4, 5, 6, 7
   status     PhaseStatus @default(NOT_STARTED)
   startDate  DateTime?
   endDate    DateTime?
@@ -183,7 +183,7 @@ enum ProjectRole {
 // ========================================
 
 model File {
-  id               String     @id @default(cuid())
+  id               String  @id @default(cuid())
   filename         String
   originalFilename String
   fileType         String
@@ -193,7 +193,7 @@ model File {
   thumbnailS3Url   String?
 
   projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   phaseId   String?
   folder    FileFolder
 
@@ -317,19 +317,19 @@ enum JobStatus {
 }
 
 model ColorPalette {
-  id          String  @id @default(cuid())
-  projectId   String
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  name        String
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
 
   // Core colors
-  primaryColor    String
-  secondaryColor  String?
-  accentColor     String?
+  primaryColor   String
+  secondaryColor String?
+  accentColor    String?
 
   // Neutrals
-  neutralLight  String?
-  neutralDark   String?
+  neutralLight String?
+  neutralDark  String?
 
   // Application colors
   backgroundColor String?
@@ -348,24 +348,24 @@ model Typography {
   name      String
 
   // Primary/Heading Font
-  primaryFontFamily String
-  primaryFontWeights String @default("[]") // JSON array ["400", "700"]
-  primaryFontSource String? // Google Fonts URL or "custom"
+  primaryFontFamily  String
+  primaryFontWeights String  @default("[]") // JSON array ["400", "700"]
+  primaryFontSource  String? // Google Fonts URL or "custom"
 
   // Secondary/Body Font
-  secondaryFontFamily String
-  secondaryFontWeights String @default("[]")
-  secondaryFontSource String?
+  secondaryFontFamily  String
+  secondaryFontWeights String  @default("[]")
+  secondaryFontSource  String?
 
   // Optional Accent Font
-  accentFontFamily String?
+  accentFontFamily  String?
   accentFontWeights String? @default("[]")
-  accentFontSource String?
+  accentFontSource  String?
 
   // Usage guidelines
   headingScale String? // JSON with h1-h6 sizes
-  bodySize String? // Default body text size
-  notes String?
+  bodySize     String? // Default body text size
+  notes        String?
 
   isApproved Boolean @default(false)
 
@@ -383,6 +383,7 @@ model Tagline {
   isFinal        Boolean @default(false)
 
   createdAt DateTime @default(now())
+  Project   Project  @relation(fields: [projectId], references: [id])
 }
 
 // ========================================
@@ -400,27 +401,27 @@ model ProductSKU {
   description String?
 
   // Variants
-  size  String?
-  color String?
+  size     String?
+  color    String?
   material String?
-  style String?
+  style    String?
 
   // Pricing
-  wholesaleCost  Decimal?
-  retailPrice    Decimal?
-  targetMargin   Decimal?
+  wholesaleCost Decimal?
+  retailPrice   Decimal?
+  targetMargin  Decimal?
 
   // Specifications
-  dimensions String? // "L x W x H"
-  weight     String?
-  materials  String? // JSON array
+  dimensions       String? // "L x W x H"
+  weight           String?
+  materials        String? // JSON array
   careInstructions String?
 
   // Production
-  moq              Int? // Minimum Order Quantity
-  leadTimeDays     Int?
-  supplierName     String?
-  supplierContact  String?
+  moq             Int? // Minimum Order Quantity
+  leadTimeDays    Int?
+  supplierName    String?
+  supplierContact String?
 
   // Status
   status ProductStatus @default(PLANNING)
@@ -447,9 +448,9 @@ model Prototype {
   productSKUId String
   productSKU   ProductSKU @relation(fields: [productSKUId], references: [id], onDelete: Cascade)
 
-  version      String // "V1", "V2", etc.
-  sampleType   SampleType
-  description  String?
+  version     String // "V1", "V2", etc.
+  sampleType  SampleType
+  description String?
 
   // Feedback
   feedback     String?
@@ -494,21 +495,21 @@ model Vendor {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   // Basic Info
-  name            String
-  contactPerson   String?
-  email           String?
-  phone           String?
-  address         String?
-  country         String?
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String?
+  address       String?
+  country       String?
 
   // Capabilities
-  specialties     String? // JSON array
-  moqRange        String? // "100-500 units"
-  leadTimeRange   String? // "30-45 days"
+  specialties   String? // JSON array
+  moqRange      String? // "100-500 units"
+  leadTimeRange String? // "30-45 days"
 
   // Performance
-  rating          Decimal? // 1-5 stars
-  notes           String?
+  rating Decimal? // 1-5 stars
+  notes  String?
 
   // Relations
   purchaseOrders PurchaseOrder[]
@@ -525,18 +526,18 @@ model PurchaseOrder {
   vendor    Vendor  @relation(fields: [vendorId], references: [id])
 
   // Order Info
-  poNumber          String  @unique
-  orderDate         DateTime
-  expectedShipDate  DateTime?
-  actualShipDate    DateTime?
-  expectedDelivery  DateTime?
-  actualDelivery    DateTime?
+  poNumber         String    @unique
+  orderDate        DateTime
+  expectedShipDate DateTime?
+  actualShipDate   DateTime?
+  expectedDelivery DateTime?
+  actualDelivery   DateTime?
 
   // Financials
-  subtotal      Decimal
-  shipping      Decimal?
-  tax           Decimal?
-  totalAmount   Decimal
+  subtotal    Decimal
+  shipping    Decimal?
+  tax         Decimal?
+  totalAmount Decimal
 
   // Status
   status        POStatus      @default(DRAFT)
@@ -544,7 +545,7 @@ model PurchaseOrder {
   paymentTerms  String? // "Net 30", "50% deposit"
 
   // Tracking
-  trackingNumber String?
+  trackingNumber  String?
   shippingCarrier String?
 
   // Notes
@@ -610,12 +611,12 @@ model QCCheckpoint {
   inspectedBy    String? // User name or external inspector
 
   // Results
-  passed         Boolean?
-  defectRate     Decimal? // Percentage
-  sampleSize     Int?
+  passed     Boolean?
+  defectRate Decimal? // Percentage
+  sampleSize Int?
 
   // Issues
-  issues         String? // JSON array of issues found
+  issues          String? // JSON array of issues found
   correctionsPlan String?
 
   // Photos stored in Files table with category "QC_PHOTOS"
@@ -639,9 +640,9 @@ enum QCStatus {
 // ========================================
 
 model Approval {
-  id        String         @id @default(cuid())
+  id        String  @id @default(cuid())
   projectId String
-  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   phaseId   String?
 
   // Can contain multiple assets
@@ -656,6 +657,8 @@ model Approval {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Asset     Asset?   @relation(fields: [assetId], references: [id])
+  assetId   String?
 }
 
 enum ApprovalStatus {
@@ -666,17 +669,17 @@ enum ApprovalStatus {
 }
 
 model ApprovalReviewer {
-  id         String         @id @default(cuid())
+  id         String   @id @default(cuid())
   approvalId String
-  approval   Approval       @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+  approval   Approval @relation(fields: [approvalId], references: [id], onDelete: Cascade)
 
   reviewerId String
   reviewer   User   @relation(fields: [reviewerId], references: [id])
 
-  status           ReviewerStatus @default(PENDING)
-  feedbackText     String?
-  issueCategories  String         @default("[]") // JSON array
-  reviewedAt       DateTime?
+  status          ReviewerStatus @default(PENDING)
+  feedbackText    String?
+  issueCategories String         @default("[]") // JSON array
+  reviewedAt      DateTime?
 
   createdAt DateTime @default(now())
 
@@ -714,9 +717,9 @@ model Comment {
 }
 
 model Notification {
-  id        String            @id @default(cuid())
-  userId    String
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   eventType NotificationEvent
   message   String
@@ -740,16 +743,17 @@ enum NotificationEvent {
 }
 
 model Activity {
-  id          String       @id @default(cuid())
-  projectId   String
-  userId      String
-  user        User         @relation(fields: [userId], references: [id])
+  id        String @id @default(cuid())
+  projectId String
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
 
   actionType        ActivityType
   actionDescription String
   metadata          String       @default("{}") // JSON
 
   createdAt DateTime @default(now())
+  Project   Project  @relation(fields: [projectId], references: [id])
 }
 
 enum ActivityType {
@@ -829,13 +833,13 @@ model Message {
   attachments String @default("[]")
 
   // Status
-  isRead    Boolean @default(false)
+  isRead    Boolean   @default(false)
   readAt    DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Threading
-  threadId  String? // Group messages by thread
-  parentId  String? // Reply to a specific message
+  threadId String? // Group messages by thread
+  parentId String? // Reply to a specific message
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -851,9 +855,9 @@ model Message {
 // ========================================
 
 model Questionnaire {
-  id          String              @id @default(cuid())
-  projectId   String              @unique
-  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   status      QuestionnaireStatus @default(IN_PROGRESS)
   startedAt   DateTime            @default(now())
@@ -914,20 +918,20 @@ model Discovery {
   audienceAspirations String
 
   // Brand Voice & Aesthetic
-  toneOfVoice         ToneOfVoice
-  aestheticDirection  String
-  colorPreferences    String?
-  avoidColors         String?
+  toneOfVoice        ToneOfVoice
+  aestheticDirection String
+  colorPreferences   String?
+  avoidColors        String?
 
   // Inspiration & Competition
-  inspirationBrands        String
-  competitorBrands         String
-  differentiationStrategy  String
+  inspirationBrands       String
+  competitorBrands        String
+  differentiationStrategy String
 
   // Content & Marketing
-  contentPillars    String
-  socialMediaFocus  String
-  launchGoals       String
+  contentPillars   String
+  socialMediaFocus String
+  launchGoals      String
 
   // Additional
   mustHaveElements String?
@@ -962,9 +966,9 @@ enum TargetGender {
 
 enum IncomeLevel {
   UNDER_30K
-  30K_50K
-  50K_75K
-  75K_100K
+  RANGE_30K_50K
+  RANGE_50K_75K
+  RANGE_75K_100K
   OVER_100K
 }
 
@@ -996,17 +1000,17 @@ model WebsiteConfig {
   fontSecondary String?
 
   // Domain & SEO
-  domain       String?
-  metaTitle    String?
+  domain          String?
+  metaTitle       String?
   metaDescription String?
-  favicon      String?
+  favicon         String?
 
   // Platform
-  platform     WebsitePlatform?
-  platformUrl  String? // Shopify/Webflow URL
+  platform    WebsitePlatform?
+  platformUrl String? // Shopify/Webflow URL
 
   // Status
-  status       WebsiteStatus @default(PLANNING)
+  status WebsiteStatus @default(PLANNING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1036,7 +1040,7 @@ model WebsitePage {
   pageName    String // "Home", "About", "Product", "Contact"
   slug        String // "home", "about", "products/tshirt"
   pageType    PageType
-  isPublished Boolean @default(false)
+  isPublished Boolean  @default(false)
 
   // SEO
   metaTitle       String?
@@ -1065,9 +1069,9 @@ enum PageType {
 }
 
 model PageSection {
-  id         String      @id @default(cuid())
-  pageId     String
-  page       WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  id     String      @id @default(cuid())
+  pageId String
+  page   WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   // Section Info
   sectionName String // "Hero", "Features", "Testimonials"
@@ -1147,24 +1151,24 @@ model Campaign {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  campaignName  String
-  campaignType  CampaignType
-  objective     String?
-  budget        Decimal?
-  startDate     DateTime?
-  endDate       DateTime?
+  campaignName String
+  campaignType CampaignType
+  objective    String?
+  budget       Decimal?
+  startDate    DateTime?
+  endDate      DateTime?
 
-  status        CampaignStatus @default(PLANNING)
+  status CampaignStatus @default(PLANNING)
 
   // Metrics
-  impressions   Int?
-  clicks        Int?
-  conversions   Int?
-  spend         Decimal?
-  notes         String?
+  impressions Int?
+  clicks      Int?
+  conversions Int?
+  spend       Decimal?
+  notes       String?
 
-  contentPosts  ContentPost[]
-  adCreatives   AdCreative[]
+  contentPosts ContentPost[]
+  adCreatives  AdCreative[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1197,31 +1201,31 @@ model ContentPost {
   campaignId String?
   campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
-  postTitle       String
-  postContent     String
-  platform        SocialPlatform
-  postType        ContentType
+  postTitle   String
+  postContent String
+  platform    SocialPlatform
+  postType    ContentType
 
-  scheduledDate   DateTime?
-  publishedDate   DateTime?
+  scheduledDate DateTime?
+  publishedDate DateTime?
 
-  status          PostStatus @default(DRAFT)
+  status PostStatus @default(DRAFT)
 
   // Media & Assets
-  mediaUrls       String? // JSON array
-  assetIds        String? // JSON array of related asset IDs
+  mediaUrls String? // JSON array
+  assetIds  String? // JSON array of related asset IDs
 
   // Engagement metrics
-  likes           Int?
-  comments        Int?
-  shares          Int?
-  views           Int?
+  likes    Int?
+  comments Int?
+  shares   Int?
+  views    Int?
 
   // Hashtags & Tags
-  hashtags        String?
-  taggedAccounts  String?
+  hashtags       String?
+  taggedAccounts String?
 
-  notes           String?
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1266,36 +1270,36 @@ model AdCreative {
   campaignId String?
   campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
-  adName         String
-  adFormat       AdFormat
-  platform       AdPlatform
+  adName   String
+  adFormat AdFormat
+  platform AdPlatform
 
   // Creative content
-  headline       String?
-  primaryText    String?
-  description    String?
-  callToAction   String?
+  headline     String?
+  primaryText  String?
+  description  String?
+  callToAction String?
 
   // Media
-  imageUrl       String?
-  videoUrl       String?
+  imageUrl String?
+  videoUrl String?
 
   // A/B Testing
-  variant        String? // e.g., "A", "B", "Control"
-  testGroup      String?
+  variant   String? // e.g., "A", "B", "Control"
+  testGroup String?
 
   // Performance
-  impressions    Int?
-  clicks         Int?
-  conversions    Int?
-  spend          Decimal?
-  ctr            Decimal? // Click-through rate
-  cpc            Decimal? // Cost per click
-  cpa            Decimal? // Cost per acquisition
+  impressions Int?
+  clicks      Int?
+  conversions Int?
+  spend       Decimal?
+  ctr         Decimal? // Click-through rate
+  cpc         Decimal? // Cost per click
+  cpa         Decimal? // Cost per acquisition
 
-  status         AdStatus @default(DRAFT)
+  status AdStatus @default(DRAFT)
 
-  notes          String?
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1337,22 +1341,22 @@ model LaunchTask {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  taskName      String
-  description   String?
-  category      LaunchCategory
-  priority      TaskPriority @default(MEDIUM)
+  taskName    String
+  description String?
+  category    LaunchCategory
+  priority    TaskPriority   @default(MEDIUM)
 
   assignedTo    String? // User ID
   dueDate       DateTime?
   completedDate DateTime?
 
-  status        TaskStatus @default(PENDING)
+  status TaskStatus @default(PENDING)
 
   // Dependencies
-  dependsOn     String? // JSON array of task IDs
-  blockedBy     String?
+  dependsOn String? // JSON array of task IDs
+  blockedBy String?
 
-  notes         String?
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1391,37 +1395,37 @@ model Influencer {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  name            String
-  platform        SocialPlatform
-  handle          String
-  email           String?
-  phone           String?
+  name     String
+  platform SocialPlatform
+  handle   String
+  email    String?
+  phone    String?
 
   // Metrics
-  followerCount   Int?
-  engagementRate  Decimal?
-  niche           String?
+  followerCount  Int?
+  engagementRate Decimal?
+  niche          String?
 
   // Partnership
   status          InfluencerStatus @default(PROSPECTING)
   partnershipType PartnershipType?
 
   // Compensation
-  rate            Decimal?
-  currency        String? @default("USD")
-  deliverables    String? // JSON
+  rate         Decimal?
+  currency     String?  @default("USD")
+  deliverables String? // JSON
 
   // Contract & Dates
-  contractDate    DateTime?
-  postDate        DateTime?
-  trackingLink    String?
+  contractDate DateTime?
+  postDate     DateTime?
+  trackingLink String?
 
   // Performance
-  impressions     Int?
-  clicks          Int?
-  conversions     Int?
+  impressions Int?
+  clicks      Int?
+  conversions Int?
 
-  notes           String?
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1452,31 +1456,31 @@ model UGCSubmission {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  submitterName  String
-  submitterEmail String?
+  submitterName   String
+  submitterEmail  String?
   submitterHandle String?
-  platform       SocialPlatform?
+  platform        SocialPlatform?
 
-  contentType    ContentType
-  contentUrl     String
-  caption        String?
+  contentType ContentType
+  contentUrl  String
+  caption     String?
 
   // Rights & Usage
-  rightsGranted  Boolean @default(false)
-  usageApproved  Boolean @default(false)
+  rightsGranted Boolean @default(false)
+  usageApproved Boolean @default(false)
 
   // Engagement
-  likes          Int?
-  comments       Int?
-  shares         Int?
+  likes    Int?
+  comments Int?
+  shares   Int?
 
-  status         UGCStatus @default(SUBMITTED)
+  status UGCStatus @default(SUBMITTED)
 
   // Compensation
-  compensationType String? // Gift, payment, etc.
+  compensationType   String? // Gift, payment, etc.
   compensationAmount Decimal?
 
-  notes          String?
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
